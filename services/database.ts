@@ -18,6 +18,9 @@ export const initDatabase = async () => {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES categories (id)
     );
+    
+    -- Insert default category if it doesn't exist
+    INSERT OR IGNORE INTO categories (id, name, icon) VALUES (1, 'General', '📝');
   `);
 };
 

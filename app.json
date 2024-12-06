@@ -21,6 +21,7 @@
       },
       "package": "com.yourcompany.listify"
     },
-    "plugins": ["expo-sqlite"]
+    "plugins": ["expo-sqlite"],
+    "newArchEnabled": true
   }
 }

@@ -13,6 +13,13 @@ export default function RootLayout() {
         name="(tabs)" 
         options={{ headerShown: false }} 
       />
+      <Stack.Screen 
+        name="add-task" 
+        options={{
+          presentation: 'modal',
+          title: 'Add Task'
+        }} 
+      />
     </Stack>
   );
 }
