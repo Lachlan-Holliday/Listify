@@ -3,12 +3,12 @@ import { useThemeColor } from '../../hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
-  const tintColor = useThemeColor({ light: '#007AFF', dark: '#0A84FF' }, 'tint');
+  const tintColor = useThemeColor({ light: '#007AFF', dark: '#0A84FF' }, 'primary');
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: tintColor,
+        tabBarActiveTintColor: tintColor as string,
       }}>
       <Tabs.Screen
         name="index"
@@ -22,9 +22,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: 'Settings',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="search" size={24} color={color} />
+            <Ionicons name="settings-outline" size={24} color={color} />
           ),
         }}
       />
