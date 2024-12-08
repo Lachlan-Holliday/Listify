@@ -62,5 +62,15 @@ export const DatabaseService = {
       console.error('Toggle task error:', error);
       return false;
     }
+  },
+
+  async deleteTask(id: number): Promise<boolean> {
+    try {
+      await db.execAsync(`DELETE FROM tasks WHERE id = ${id}`);
+      return true;
+    } catch (error) {
+      console.error('Delete task error:', error);
+      return false;
+    }
   }
 };

@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, useColorScheme } from 'react-native';
 import { Card } from 'react-native-paper';
 import { router } from 'expo-router';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { BouncingArrow } from '../components/BouncingArrow';
+import { Colors } from '../constants/Colors';
 
 const categories = [
   { id: 1, name: 'Work', icon: '💼', color: '#FF9B9B' },
@@ -15,6 +16,8 @@ const categories = [
 ];
 
 export default function AddTaskScreen() {
+  const colorScheme = useColorScheme() as 'light' | 'dark';
+
   const handleCategoryPress = (categoryId: number) => {
     router.push({
       pathname: '/create-task',
@@ -27,11 +30,14 @@ export default function AddTaskScreen() {
       <ThemedText type="title" style={styles.title}>
         Choose Category
       </ThemedText>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {categories.map((category) => (
           <Card
             key={category.id}
-            style={[styles.categoryCard, { backgroundColor: category.color }]}
+            style={[
+              styles.categoryCard,
+              { backgroundColor: Colors[colorScheme].categoryColors[category.name.toLowerCase() as keyof typeof Colors.light.categoryColors] }
+            ]}
             onPress={() => handleCategoryPress(category.id)}>
             <Card.Content style={styles.cardContent}>
               <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
@@ -51,27 +57,34 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 24,
     textAlign: 'center',
   },
   scrollView: {
     flex: 1,
   },
   categoryCard: {
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 16,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   emoji: {
-    fontSize: 24,
-    marginRight: 12,
+    fontSize: 32,
+    marginRight: 16,
   },
   categoryName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
   },
 }); 

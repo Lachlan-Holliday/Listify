@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList } from 'react-native';
-import { FAB, Card } from 'react-native-paper';
+import React, { useState } from 'react';
+import { StyleSheet, FlatList, View } from 'react-native';
+import { FAB, Card, useTheme } from 'react-native-paper';
 import { Link, useFocusEffect } from 'expo-router';
 import { DatabaseService } from '../../services/database';
 import { Task } from '../../types/database';
 import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const theme = useTheme();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -26,19 +28,56 @@ export default function TasksScreen() {
     loadTasks();
   };
 
+  const handleDeleteTask = async (taskId: number) => {
+    await DatabaseService.deleteTask(taskId);
+    loadTasks();
+  };
+
+  const renderRightActions = (taskId: number) => (
+    <View style={styles.deleteAction}>
+      <ThemedText 
+        style={styles.deleteText}
+        onPress={() => handleDeleteTask(taskId)}
+      >
+        Delete
+      </ThemedText>
+    </View>
+  );
+
   const renderTaskItem = ({ item }: { item: Task }) => (
-    <Card
-      style={[styles.taskCard, item.status === 'completed' && styles.completedTask]}
-      onPress={() => handleCompleteTask(item.id)}>
-      <Card.Content style={styles.cardContent}>
-        <ThemedText style={styles.taskName}>{item.name}</ThemedText>
-        {item.deadline && (
-          <ThemedText style={styles.deadline}>
-            Due: {new Date(item.deadline).toLocaleDateString()}
-          </ThemedText>
-        )}
-      </Card.Content>
-    </Card>
+    <Swipeable
+      renderRightActions={() => renderRightActions(item.id)}
+      overshootRight={false}
+    >
+      <Card
+        style={[
+          styles.taskCard,
+          item.status === 'completed' && styles.completedTask
+        ]}
+        onPress={() => handleCompleteTask(item.id)}>
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.taskHeader}>
+            <ThemedText 
+              style={[
+                styles.taskName,
+                item.status === 'completed' && styles.completedTaskText
+              ]}
+            >
+              {item.name}
+            </ThemedText>
+            <View style={[
+              styles.statusIndicator,
+              { backgroundColor: item.status === 'completed' ? theme.colors.primary : '#4CAF50' }
+            ]} />
+          </View>
+          {item.deadline && (
+            <ThemedText style={styles.deadline}>
+              Due: {new Date(item.deadline).toLocaleDateString()}
+            </ThemedText>
+          )}
+        </Card.Content>
+      </Card>
+    </Swipeable>
   );
 
   return (
@@ -69,21 +108,43 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   taskCard: {
-    marginBottom: 8,
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   completedTask: {
     opacity: 0.7,
   },
+  completedTaskText: {
+    textDecorationLine: 'line-through',
+    opacity: 0.7,
+  },
   cardContent: {
-    flexDirection: 'column',
+    padding: 16,
+  },
+  taskHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   taskName: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
+    flex: 1,
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
   },
   deadline: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: 14,
     opacity: 0.7,
   },
   fab: {
@@ -91,5 +152,17 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+    borderRadius: 16,
+  },
+  deleteAction: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 24,
+    marginBottom: 12,
+  },
+  deleteText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });

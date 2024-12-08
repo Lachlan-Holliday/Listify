@@ -10,7 +10,7 @@ interface BouncingArrowProps {
 
 export function BouncingArrow({ onPress }: BouncingArrowProps) {
   const translateY = new Animated.Value(0);
-  const iconColor = useThemeColor({ light: '#999', dark: '#666' }, 'text');
+  const iconColor = useThemeColor({ light: '#999', dark: '#666' }, 'text') as string;
 
   useEffect(() => {
     const animation = Animated.loop(

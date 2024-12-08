@@ -8,19 +8,35 @@ const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    primary: '#007AFF',
+    background: '#F8F9FA',
+    card: '#FFFFFF',
+    text: '#1C1C1E',
+    border: '#E5E5EA',
+    notification: '#FF3B30',
+    // Category colors
+    categoryColors: {
+      work: '#FF9B9B',
+      study: '#9BB8FF',
+      fitness: '#A5FF9B',
+      shopping: '#FFE59B',
+      personal: '#D89BFF',
+    }
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+    primary: '#0A84FF',
+    background: '#1C1C1E',
+    card: '#2C2C2E',
+    text: '#FFFFFF',
+    border: '#38383A',
+    notification: '#FF453A',
+    // Category colors with darker shades
+    categoryColors: {
+      work: '#CC7272',
+      study: '#7285CC',
+      fitness: '#72CC7B',
+      shopping: '#CCB872',
+      personal: '#B072CC',
+    }
+  }
 };
