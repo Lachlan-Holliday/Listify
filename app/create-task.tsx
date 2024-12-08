@@ -18,6 +18,7 @@ export default function CreateTaskScreen() {
     try {
       const success = await DatabaseService.addTask(taskName, deadline);
       if (success) {
+        router.back();
         router.replace('/(tabs)');
       }
     } catch (error) {
@@ -25,6 +26,10 @@ export default function CreateTaskScreen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDismiss = () => {
+    router.back();
   };
 
   return (
@@ -54,7 +59,7 @@ export default function CreateTaskScreen() {
       >
         Create Task
       </Button>
-      <BouncingArrow />
+      <BouncingArrow onPress={handleDismiss} />
     </ThemedView>
   );
 }

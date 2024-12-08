@@ -4,7 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { ThemedText } from './ThemedText';
 
-export function BouncingArrow() {
+interface BouncingArrowProps {
+  onPress?: () => void;
+}
+
+export function BouncingArrow({ onPress }: BouncingArrowProps) {
   const translateY = new Animated.Value(0);
   const iconColor = useThemeColor({ light: '#999', dark: '#666' }, 'text');
 
@@ -29,7 +33,10 @@ export function BouncingArrow() {
   }, []);
 
   return (
-    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+    <Animated.View 
+      style={[styles.container, { transform: [{ translateY }] }]}
+      onTouchEnd={onPress}
+    >
       <ThemedText style={styles.text}>Swipe down to cancel</ThemedText>
       <Ionicons name="chevron-down" size={30} color={iconColor} />
     </Animated.View>
