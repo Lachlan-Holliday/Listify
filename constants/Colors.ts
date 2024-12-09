@@ -14,6 +14,7 @@ export const Colors = {
     text: '#1C1C1E',
     border: '#E5E5EA',
     notification: '#FF3B30',
+    cardBackground: '#FFFFFF',
     // Category colors
     categoryColors: {
       work: '#FF9B9B',
@@ -30,6 +31,7 @@ export const Colors = {
     text: '#FFFFFF',
     border: '#38383A',
     notification: '#FF453A',
+    cardBackground: '#2C2C2E',
     // Category colors with darker shades
     categoryColors: {
       work: '#CC7272',

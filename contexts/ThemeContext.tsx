@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useColorScheme as useNativeColorScheme } from 'react-native';
+import { Appearance, AppState } from 'react-native';
 
 type ThemeContextType = {
   theme: 'light' | 'dark';
@@ -10,11 +10,29 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemColorScheme = useNativeColorScheme();
-  const [theme, setTheme] = useState<'light' | 'dark'>(systemColorScheme || 'light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(Appearance.getColorScheme() || 'light');
 
   useEffect(() => {
     loadThemePreference();
+
+    // Listen for theme changes
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      if (colorScheme) {
+        setTheme(colorScheme);
+      }
+    });
+
+    // Listen for app state changes
+    const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        loadThemePreference();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+      appStateSubscription.remove();
+    };
   }, []);
 
   const loadThemePreference = async () => {
@@ -22,6 +40,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const savedTheme = await AsyncStorage.getItem('theme');
       if (savedTheme) {
         setTheme(savedTheme as 'light' | 'dark');
+        Appearance.setColorScheme(savedTheme as 'light' | 'dark');
       }
     } catch (error) {
       console.error('Error loading theme:', error);
@@ -30,8 +49,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = async () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
     await AsyncStorage.setItem('theme', newTheme);
+    Appearance.setColorScheme(newTheme);
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   return (

@@ -1,14 +1,25 @@
 import { Tabs } from 'expo-router';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Colors } from '../../constants/Colors';
 
 export default function TabLayout() {
-  const tintColor = useThemeColor({ light: '#007AFF', dark: '#0A84FF' }, 'primary');
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: tintColor as string,
+        tabBarActiveTintColor: isDark ? Colors.dark.primary : Colors.light.primary,
+        tabBarStyle: {
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+          borderTopColor: isDark ? Colors.dark.border : Colors.light.border,
+        },
+        tabBarInactiveTintColor: isDark ? '#8E8E93' : '#999999',
+        headerStyle: {
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+        },
+        headerTintColor: isDark ? Colors.dark.text : Colors.light.text,
       }}>
       <Tabs.Screen
         name="index"

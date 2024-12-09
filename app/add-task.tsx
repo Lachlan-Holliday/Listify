@@ -6,6 +6,7 @@ import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { BouncingArrow } from '../components/BouncingArrow';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../contexts/ThemeContext';
 
 const categories = [
   { id: 1, name: 'Work', icon: '💼', color: '#FF9B9B' },
@@ -16,7 +17,8 @@ const categories = [
 ];
 
 export default function AddTaskScreen() {
-  const colorScheme = useColorScheme() as 'light' | 'dark';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleCategoryPress = (categoryId: number) => {
     router.push({
@@ -26,25 +28,31 @@ export default function AddTaskScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#F8F9FA' }]}>
       <ThemedText type="title" style={styles.title}>
         Choose Category
       </ThemedText>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {categories.map((category) => (
-          <Card
-            key={category.id}
-            style={[
-              styles.categoryCard,
-              { backgroundColor: Colors[colorScheme].categoryColors[category.name.toLowerCase() as keyof typeof Colors.light.categoryColors] }
-            ]}
-            onPress={() => handleCategoryPress(category.id)}>
-            <Card.Content style={styles.cardContent}>
-              <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
-              <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
-            </Card.Content>
-          </Card>
-        ))}
+        {categories.map((category) => {
+          const categoryKey = category.name.toLowerCase() as keyof typeof Colors.light.categoryColors;
+          return (
+            <Card
+              key={category.id}
+              style={[
+                styles.categoryCard,
+                { backgroundColor: isDark ? 
+                  Colors.dark.categoryColors[categoryKey] : 
+                  Colors.light.categoryColors[categoryKey] 
+                }
+              ]}
+              onPress={() => handleCategoryPress(category.id)}>
+              <Card.Content style={styles.cardContent}>
+                <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
+                <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
+              </Card.Content>
+            </Card>
+          );
+        })}
       </ScrollView>
       <BouncingArrow />
     </ThemedView>

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
-import { FAB, Card, useTheme } from 'react-native-paper';
+import { FAB, Card } from 'react-native-paper';
 import { Link, useFocusEffect } from 'expo-router';
 import { DatabaseService } from '../../services/database';
 import { Task } from '../../types/database';
 import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Colors } from '../../constants/Colors';
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const theme = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   useFocusEffect(
     React.useCallback(() => {
@@ -52,6 +55,9 @@ export default function TasksScreen() {
       <Card
         style={[
           styles.taskCard,
+          {
+            backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
+          },
           item.status === 'completed' && styles.completedTask
         ]}
         onPress={() => handleCompleteTask(item.id)}>
@@ -67,7 +73,10 @@ export default function TasksScreen() {
             </ThemedText>
             <View style={[
               styles.statusIndicator,
-              { backgroundColor: item.status === 'completed' ? theme.colors.primary : '#4CAF50' }
+              { backgroundColor: item.status === 'completed' ? 
+                (isDark ? Colors.dark.primary : Colors.light.primary) : 
+                '#4CAF50' 
+              }
             ]} />
           </View>
           {item.deadline && (
@@ -81,7 +90,10 @@ export default function TasksScreen() {
   );
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[
+      styles.container,
+      { backgroundColor: isDark ? Colors.dark.background : Colors.light.background }
+    ]}>
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id.toString()}

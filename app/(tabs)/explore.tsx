@@ -3,12 +3,17 @@ import { Switch } from 'react-native-paper';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Colors } from '../../constants/Colors';
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[
+      styles.container,
+      { backgroundColor: isDark ? Colors.dark.background : Colors.light.background }
+    ]}>
       <ThemedText type="title" style={styles.title}>
         Settings
       </ThemedText>
@@ -18,7 +23,10 @@ export default function SettingsScreen() {
           Appearance
         </ThemedText>
 
-        <ThemedView style={styles.settingItem}>
+        <ThemedView style={[
+          styles.settingItem,
+          { backgroundColor: isDark ? Colors.dark.card : Colors.light.card }
+        ]}>
           <ThemedText>Dark Mode</ThemedText>
           <Switch
             value={theme === 'dark'}

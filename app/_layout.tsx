@@ -5,17 +5,22 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { Colors } from '../constants/Colors';
 
 function RootLayoutNav() {
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme === 'dark' ? '#1C1C1E' : '#FFFFFF',
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
         },
-        headerTintColor: theme === 'dark' ? '#FFFFFF' : '#000000',
+        headerTintColor: isDark ? Colors.dark.text : Colors.light.text,
+        contentStyle: {
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+        }
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen 
