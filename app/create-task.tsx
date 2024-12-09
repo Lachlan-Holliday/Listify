@@ -5,8 +5,13 @@ import { router } from 'expo-router';
 import { DatabaseService } from '../services/database';
 import { ThemedView } from '../components/ThemedView';
 import { BouncingArrow } from '../components/BouncingArrow';
+import { useTheme } from '../contexts/ThemeContext';
+import { Colors } from '../constants/Colors';
 
 export default function CreateTaskScreen() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [taskName, setTaskName] = useState('');
   const [deadline, setDeadline] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,27 +38,44 @@ export default function CreateTaskScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { 
+      backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
+    }]}>
       <TextInput
         label="Task Name"
         value={taskName}
         onChangeText={setTaskName}
-        style={styles.input}
+        style={[styles.input, { 
+          backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+        }]}
+        textColor={isDark ? Colors.dark.text : Colors.light.text}
+        placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
         mode="outlined"
+        outlineColor={isDark ? Colors.dark.border : Colors.light.border}
+        activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
         autoFocus
       />
       <TextInput
         label="Deadline (optional)"
         value={deadline}
         onChangeText={setDeadline}
-        style={styles.input}
+        style={[styles.input, { 
+          backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+        }]}
+        textColor={isDark ? Colors.dark.text : Colors.light.text}
+        placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
         mode="outlined"
+        outlineColor={isDark ? Colors.dark.border : Colors.light.border}
+        activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
         placeholder="YYYY-MM-DD"
       />
       <Button 
         mode="contained" 
         onPress={handleCreateTask}
-        style={styles.button}
+        style={[styles.button, {
+          backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary
+        }]}
+        textColor={isDark ? Colors.dark.text : '#FFFFFF'}
         disabled={!taskName.trim() || isSubmitting}
         loading={isSubmitting}
       >

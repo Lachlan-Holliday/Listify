@@ -11,10 +11,12 @@ export const Colors = {
     primary: '#007AFF',
     background: '#F8F9FA',
     card: '#FFFFFF',
-    text: '#1C1C1E',
+    text: '#1A1A1A',
+    secondaryText: '#666666',
     border: '#E5E5EA',
     notification: '#FF3B30',
     cardBackground: '#FFFFFF',
+    settingsItem: '#F2F2F7',
     // Category colors
     categoryColors: {
       work: '#FF9B9B',
@@ -29,9 +31,11 @@ export const Colors = {
     background: '#1C1C1E',
     card: '#2C2C2E',
     text: '#FFFFFF',
+    secondaryText: '#8E8E93',
     border: '#38383A',
     notification: '#FF453A',
     cardBackground: '#2C2C2E',
+    settingsItem: '#2C2C2E',
     // Category colors with darker shades
     categoryColors: {
       work: '#CC7272',

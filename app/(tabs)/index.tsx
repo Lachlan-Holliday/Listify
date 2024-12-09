@@ -56,7 +56,9 @@ export default function TasksScreen() {
         style={[
           styles.taskCard,
           {
-            backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+            borderColor: isDark ? Colors.dark.border : Colors.light.border,
+            borderWidth: 1,
           },
           item.status === 'completed' && styles.completedTask
         ]}
@@ -66,7 +68,11 @@ export default function TasksScreen() {
             <ThemedText 
               style={[
                 styles.taskName,
-                item.status === 'completed' && styles.completedTaskText
+                { color: isDark ? Colors.dark.text : Colors.light.text },
+                item.status === 'completed' && {
+                  color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
+                  textDecorationLine: 'line-through'
+                }
               ]}
             >
               {item.name}
@@ -80,7 +86,10 @@ export default function TasksScreen() {
             ]} />
           </View>
           {item.deadline && (
-            <ThemedText style={styles.deadline}>
+            <ThemedText style={[
+              styles.deadline,
+              { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+            ]}>
               Due: {new Date(item.deadline).toLocaleDateString()}
             </ThemedText>
           )}
@@ -100,13 +109,20 @@ export default function TasksScreen() {
         renderItem={renderTaskItem}
         style={styles.list}
       />
-      <Link href="/add-task" asChild>
-        <FAB
-          style={styles.fab}
-          icon="plus"
-          onPress={() => {}}
-        />
-      </Link>
+      <View style={styles.fabContainer}>
+        <Link href="/add-task" asChild>
+          <FAB
+            style={[
+              styles.fab,
+              {
+                backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+              }
+            ]}
+            icon="plus"
+            color={isDark ? Colors.dark.text : '#FFFFFF'}
+          />
+        </Link>
+      </View>
     </ThemedView>
   );
 }
@@ -159,12 +175,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    borderRadius: 16,
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+  },
+  fab: {
+    borderRadius: 28,
+    width: '100%',
+    height: '100%',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   deleteAction: {
     backgroundColor: '#FF3B30',

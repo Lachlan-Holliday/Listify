@@ -14,20 +14,35 @@ export default function SettingsScreen() {
       styles.container,
       { backgroundColor: isDark ? Colors.dark.background : Colors.light.background }
     ]}>
-      <ThemedText type="title" style={styles.title}>
-        Settings
-      </ThemedText>
-
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
+      <ThemedView style={[
+        styles.section,
+        { borderRadius: 12 }
+      ]}>
+        <ThemedText style={[
+          styles.sectionTitle,
+          { 
+            color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
+            fontSize: 16,
+            fontWeight: '600',
+          }
+        ]}>
           Appearance
         </ThemedText>
 
         <ThemedView style={[
           styles.settingItem,
-          { backgroundColor: isDark ? Colors.dark.card : Colors.light.card }
+          {
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.settingsItem,
+            borderColor: isDark ? Colors.dark.border : Colors.light.border,
+            borderWidth: 1,
+          }
         ]}>
-          <ThemedText>Dark Mode</ThemedText>
+          <ThemedText style={{ 
+            color: isDark ? Colors.dark.text : Colors.light.text,
+            fontSize: 16,
+          }}>
+            Dark Mode
+          </ThemedText>
           <Switch
             value={theme === 'dark'}
             onValueChange={toggleTheme}
@@ -42,9 +57,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingTop: 32,
   },
   title: {
     marginBottom: 32,
+    marginTop: 16,
   },
   section: {
     marginBottom: 24,
