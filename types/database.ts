@@ -2,7 +2,7 @@ export interface Task {
   id: number;
   name: string;
   category: string;
-  status: 'pending' | 'completed';
+  recurring: 'none' | 'daily' | 'weekly' | 'monthly';
   completed: boolean;
   deadline?: string;
   created_at: string;

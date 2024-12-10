@@ -12,7 +12,7 @@ export const initDatabase = async () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         category TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
+        recurring TEXT CHECK(recurring IN ('none', 'daily', 'weekly', 'monthly')) DEFAULT 'none',
         completed BOOLEAN DEFAULT FALSE,
         deadline TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -29,29 +29,52 @@ export const DatabaseService = {
   async getTasks(): Promise<Task[]> {
     try {
       const database = await db;
-      const tasks = await database.getAllAsync<Task>('SELECT * FROM tasks ORDER BY created_at DESC');
-      console.log('Retrieved tasks:', JSON.stringify(tasks, null, 2));
-      return tasks;
+      const statement = await database.prepareAsync(
+        'SELECT * FROM tasks ORDER BY created_at DESC'
+      );
+      try {
+        const result = await statement.executeAsync<Task>();
+        const tasks = await result.getAllAsync();
+        console.log('Retrieved tasks:', JSON.stringify(tasks, null, 2));
+        return tasks;
+      } finally {
+        await statement.finalizeAsync();
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error);
       return [];
     }
   },
 
-  async addTask(name: string, category: string, deadline?: string): Promise<boolean> {
+  async addTask(name: string, category: string, recurring: string = 'none', deadline?: string): Promise<boolean> {
     try {
       const database = await db;
-      console.log('Adding task:', {
-        name,
-        category,
-        deadline: deadline || 'none'
-      });
-      await database.runAsync(
-        'INSERT INTO tasks (name, category, deadline) VALUES (?, ?, ?)',
-        [name.trim(), category.trim(), deadline?.trim() || null]
+      const statement = await database.prepareAsync(
+        'INSERT INTO tasks (name, category, recurring, deadline) VALUES (?, ?, ?, ?)'
       );
-      console.log('Task added successfully');
-      return true;
+      try {
+        // Ensure recurring is one of the allowed values
+        const validRecurring = ['none', 'daily', 'weekly', 'monthly'].includes(recurring) ? recurring : 'none';
+        
+        console.log('Adding task:', {
+          name,
+          category,
+          recurring: validRecurring,
+          deadline: deadline || 'none'
+        });
+
+        await statement.executeAsync([
+          name.trim(),
+          category.trim(),
+          validRecurring,
+          deadline?.trim() || null
+        ]);
+        
+        console.log('Task added successfully');
+        return true;
+      } finally {
+        await statement.finalizeAsync();
+      }
     } catch (error) {
       console.error('Add task error:', error);
       return false;
@@ -61,14 +84,15 @@ export const DatabaseService = {
   async toggleTask(id: number): Promise<boolean> {
     try {
       const database = await db;
-      await database.runAsync(
-        `UPDATE tasks 
-         SET completed = NOT completed,
-             status = CASE WHEN completed THEN 'completed' ELSE 'pending' END 
-         WHERE id = ?`,
-        [id]
+      const statement = await database.prepareAsync(
+        'UPDATE tasks SET completed = NOT completed WHERE id = ?'
       );
-      return true;
+      try {
+        await statement.executeAsync([id]);
+        return true;
+      } finally {
+        await statement.finalizeAsync();
+      }
     } catch (error) {
       console.error('Toggle task error:', error);
       return false;
@@ -78,8 +102,15 @@ export const DatabaseService = {
   async deleteTask(id: number): Promise<boolean> {
     try {
       const database = await db;
-      await database.runAsync('DELETE FROM tasks WHERE id = ?', [id]);
-      return true;
+      const statement = await database.prepareAsync(
+        'DELETE FROM tasks WHERE id = ?'
+      );
+      try {
+        await statement.executeAsync([id]);
+        return true;
+      } finally {
+        await statement.finalizeAsync();
+      }
     } catch (error) {
       console.error('Delete task error:', error);
       return false;

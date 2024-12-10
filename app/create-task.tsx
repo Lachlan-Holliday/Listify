@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
+import { TextInput, Button, SegmentedButtons } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { DatabaseService } from '../services/database';
 import { ThemedView } from '../components/ThemedView';
+import { ThemedText } from '../components/ThemedText';
 import { BouncingArrow } from '../components/BouncingArrow';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
+
+type RecurringOption = 'none' | 'daily' | 'weekly' | 'monthly';
 
 export default function CreateTaskScreen() {
   const { theme } = useTheme();
@@ -14,6 +17,7 @@ export default function CreateTaskScreen() {
 
   const [taskName, setTaskName] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [recurring, setRecurring] = useState<RecurringOption>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const params = useLocalSearchParams<{ category: string }>();
@@ -24,7 +28,7 @@ export default function CreateTaskScreen() {
     
     setIsSubmitting(true);
     try {
-      const success = await DatabaseService.addTask(taskName, category, deadline);
+      const success = await DatabaseService.addTask(taskName, category, recurring, deadline);
       if (success) {
         router.back();
         router.replace('/(tabs)');
@@ -58,6 +62,22 @@ export default function CreateTaskScreen() {
         activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
         autoFocus
       />
+
+      <View style={styles.recurringSection}>
+        <ThemedText style={styles.sectionTitle}>Recurring</ThemedText>
+        <SegmentedButtons
+          value={recurring}
+          onValueChange={value => setRecurring(value as RecurringOption)}
+          buttons={[
+            { value: 'none', label: 'Once' },
+            { value: 'daily', label: 'Daily' },
+            { value: 'weekly', label: 'Weekly' },
+            { value: 'monthly', label: 'Monthly' },
+          ]}
+          style={styles.segmentedButtons}
+        />
+      </View>
+
       <TextInput
         label="Deadline (optional)"
         value={deadline}
@@ -72,6 +92,7 @@ export default function CreateTaskScreen() {
         activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
         placeholder="YYYY-MM-DD"
       />
+
       <Button 
         mode="contained" 
         onPress={handleCreateTask}
@@ -84,6 +105,7 @@ export default function CreateTaskScreen() {
       >
         Create Task
       </Button>
+      
       <BouncingArrow onPress={handleDismiss} />
     </ThemedView>
   );
@@ -96,6 +118,17 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
+  },
+  recurringSection: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  segmentedButtons: {
+    marginBottom: 8,
   },
   button: {
     marginTop: 8,
