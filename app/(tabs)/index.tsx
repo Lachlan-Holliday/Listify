@@ -133,14 +133,14 @@ export default function TasksScreen() {
       <View style={styles.fabContainer}>
         <Link href="/add-task" asChild>
           <FAB
+            icon="plus"
             style={[
               styles.fab,
               {
-                backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+                backgroundColor: '#0A7EA4',
               }
             ]}
-            icon="plus"
-            color={isDark ? Colors.dark.text : '#FFFFFF'}
+            color="#FFFFFF"
           />
         </Link>
       </View>

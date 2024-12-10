@@ -3,13 +3,18 @@ import { Task, Category } from '../types/database';
 
 const db = SQLite.openDatabaseAsync('listify.db');
 
+const DEFAULT_CATEGORIES = [
+  { name: 'Work', icon: '💼', color: '#FF9B9B' },
+  { name: 'Study', icon: '📚', color: '#9BB8FF' },
+  { name: 'Fitness', icon: '💪', color: '#A5FF9B' },
+  { name: 'Shopping', icon: '🛒', color: '#FFE59B' },
+  { name: 'Personal', icon: '🎯', color: '#D89BFF' },
+];
+
 export const initDatabase = async () => {
   try {
     const database = await db;
     await database.execAsync(`
-      DROP TABLE IF EXISTS tasks;
-      DROP TABLE IF EXISTS categories;
-      
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -28,7 +33,21 @@ export const initDatabase = async () => {
       );
       PRAGMA journal_mode = WAL;
     `);
-    console.log('Database initialized with new schema');
+
+    // Check if categories table is empty and populate with defaults if needed
+    const statement = await database.prepareAsync('SELECT COUNT(*) as count FROM categories');
+    const result = await statement.executeAsync<{ count: number }>();
+    const rows = await result.getAllAsync();
+    const count = rows[0].count;
+    
+    if (count === 0) {
+      // Add default categories only if table is empty
+      for (const category of DEFAULT_CATEGORIES) {
+        await DatabaseService.addCategory(category.name, category.icon, category.color);
+      }
+    }
+
+    console.log('Database initialized');
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -178,5 +197,21 @@ export const DatabaseService = {
       console.error('Delete category error:', error);
       return false;
     }
-  }
+  },
+
+  async resetCategories(): Promise<boolean> {
+    try {
+      const database = await db;
+      await database.execAsync('DELETE FROM categories;');
+      
+      // Add default categories
+      for (const category of DEFAULT_CATEGORIES) {
+        await this.addCategory(category.name, category.icon, category.color);
+      }
+      return true;
+    } catch (error) {
+      console.error('Reset categories error:', error);
+      return false;
+    }
+  },
 };

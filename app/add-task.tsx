@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, Pressable } from 'react-native';
-import { Card, FAB } from 'react-native-paper';
-import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet, ScrollView, View, Pressable} from 'react-native';
+import { Card, FAB, Button } from 'react-native-paper';
+import { router, useFocusEffect } from 'expo-router';
 import { Swipeable } from 'react-native-gesture-handler';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
@@ -17,9 +17,11 @@ export default function AddTaskScreen() {
   const isDark = theme === 'dark';
   const [categories, setCategories] = useState<Category[]>([]);
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCategories();
+    }, [])
+  );
 
   const loadCategories = async () => {
     const cats = await DatabaseService.getCategories();
@@ -64,9 +66,6 @@ export default function AddTaskScreen() {
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
     }]}>
-      <ThemedText type="title" style={styles.title}>
-        Categories
-      </ThemedText>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {categories.map((category) => (
           <Swipeable
@@ -93,14 +92,35 @@ export default function AddTaskScreen() {
         ))}
       </ScrollView>
 
-      <FAB
-        icon="plus"
-        style={[styles.fab, {
-          backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
-        }]}
-        color="#FFFFFF"
-        onPress={() => router.push('/add-category')}
-      />
+      <View style={styles.bottomContainer}>
+        <Button
+          mode="outlined"
+          onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await DatabaseService.resetCategories();
+            loadCategories();
+          }}
+          style={[styles.resetButton, {
+            borderColor: isDark ? Colors.dark.border : Colors.light.border,
+          }]}
+          textColor={isDark ? Colors.dark.text : Colors.light.text}
+          labelStyle={{ color: isDark ? Colors.dark.text : Colors.light.text }}
+        >
+          Reset Categories
+        </Button>
+
+        <FAB
+          icon="plus"
+          style={[
+            styles.fab,
+            {
+              backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+            }
+          ]}
+          color="#FFFFFF"
+          onPress={() => router.push('/add-category')}
+        />
+      </View>
     </ThemedView>
   );
 }
@@ -114,7 +134,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 24,
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
@@ -131,15 +150,20 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
+    minHeight: 70,
   },
   emoji: {
-    fontSize: 32,
-    marginRight: 16,
+    fontSize: 28,
+    marginRight: 12,
+    lineHeight: 36,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   categoryName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
+    flex: 1,
   },
   deleteActionContainer: {
     justifyContent: 'center',
@@ -165,11 +189,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  fab: {
+  bottomContainer: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
-    borderRadius: 28,
+    bottom: 32,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resetButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  fab: {
+    borderRadius: 16,
+    width: 56,
+    height: 56,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

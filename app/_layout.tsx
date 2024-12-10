@@ -28,7 +28,7 @@ function RootLayoutNav() {
         name="add-task" 
         options={{
           presentation: 'modal',
-          title: 'Categories'
+          title: 'Choose Category'
         }} 
       />
       <Stack.Screen 
