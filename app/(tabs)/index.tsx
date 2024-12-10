@@ -17,6 +17,10 @@ export default function TasksScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  const fabStyle = {
+    backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       loadTasks();
@@ -134,12 +138,7 @@ export default function TasksScreen() {
         <Link href="/add-task" asChild>
           <FAB
             icon="plus"
-            style={[
-              styles.fab,
-              {
-                backgroundColor: '#0A7EA4',
-              }
-            ]}
+            style={styles.fab}
             color="#FFFFFF"
           />
         </Link>
@@ -203,16 +202,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
   },
-  fab: {
-    borderRadius: 28,
-    width: '100%',
-    height: '100%',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
   deleteActionContainer: {
     justifyContent: 'center',
     marginLeft: 8,
@@ -236,5 +225,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+  },
+  fab: {
+    borderRadius: 16,
+    width: '100%',
+    height: '100%',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    backgroundColor: Colors.dark.primary,
   },
 });
