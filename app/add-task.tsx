@@ -20,10 +20,10 @@ export default function AddTaskScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const handleCategoryPress = (categoryId: number) => {
+  const handleCategoryPress = (categoryName: string) => {
     router.push({
       pathname: '/create-task',
-      params: { categoryId },
+      params: { category: categoryName }
     });
   };
 
@@ -45,7 +45,7 @@ export default function AddTaskScreen() {
                   Colors.light.categoryColors[categoryKey] 
                 }
               ]}
-              onPress={() => handleCategoryPress(category.id)}>
+              onPress={() => handleCategoryPress(category.name)}>
               <Card.Content style={styles.cardContent}>
                 <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
                 <ThemedText style={styles.categoryName}>{category.name}</ThemedText>

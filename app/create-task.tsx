@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { DatabaseService } from '../services/database';
 import { ThemedView } from '../components/ThemedView';
 import { BouncingArrow } from '../components/BouncingArrow';
@@ -16,12 +16,15 @@ export default function CreateTaskScreen() {
   const [deadline, setDeadline] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const params = useLocalSearchParams<{ category: string }>();
+  const category = params.category;
+
   const handleCreateTask = async () => {
     if (!taskName.trim() || isSubmitting) return;
     
     setIsSubmitting(true);
     try {
-      const success = await DatabaseService.addTask(taskName, deadline);
+      const success = await DatabaseService.addTask(taskName, category, deadline);
       if (success) {
         router.back();
         router.replace('/(tabs)');

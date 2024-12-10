@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# Listify - Task Management Made Simple 📝
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern task management app built with Expo and React Native, featuring a clean interface and SQLite local storage.
 
-## Get started
+## Features
 
-1. Install dependencies
+- ✨ Create and manage tasks with ease
+- 📱 Beautiful, native UI for iOS and Android
+- 🌓 Dark and light theme support
+- 💾 Local data persistence with SQLite
+- 🎯 Category-based task organization
+- 📅 Optional deadline setting
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or newer)
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/listify.git
+   cd listify
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+### Running on Device/Simulator
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- iOS: Press `i` in the terminal or run `npm run ios`
+- Android: Press `a` in the terminal or run `npm run android`
+- Web: Press `w` in the terminal or run `npm run web`
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+listify/
+├── app/                    # Main application screens
+│   ├── (tabs)/            # Tab-based navigation
+│   ├── add-task.tsx       # Add task screen
+│   └── create-task.tsx    # Task creation form
+├── components/            # Reusable UI components
+├── services/             # Business logic and database
+├── constants/            # App constants and themes
+└── types/                # TypeScript type definitions
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Database Schema
 
-## Learn more
+The app uses SQLite for local storage with the following schema:
 
-To learn more about developing your project with Expo, look at the following resources:
+```sql
+CREATE TABLE tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  deadline TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Contributing
 
-## Join the community
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Join our community of developers creating universal apps.
+## License
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with [Expo](https://expo.dev)
+- UI components from [React Native Paper](https://callstack.github.io/react-native-paper/)
+- Database powered by [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
