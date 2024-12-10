@@ -6,6 +6,7 @@ import { StyleSheet } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
+import { PaperProvider } from 'react-native-paper';
 
 function RootLayoutNav() {
   const { theme } = useTheme();
@@ -27,7 +28,7 @@ function RootLayoutNav() {
         name="add-task" 
         options={{
           presentation: 'modal',
-          title: 'Add Task'
+          title: 'Categories'
         }} 
       />
       <Stack.Screen 
@@ -35,6 +36,13 @@ function RootLayoutNav() {
         options={{
           presentation: 'modal',
           title: 'Create Task'
+        }} 
+      />
+      <Stack.Screen 
+        name="add-category" 
+        options={{
+          presentation: 'modal',
+          title: 'Add Category'
         }} 
       />
     </Stack>
@@ -47,11 +55,13 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <GestureHandlerRootView style={styles.container}>
-        <RootLayoutNav />
-      </GestureHandlerRootView>
-    </ThemeProvider>
+    <PaperProvider>
+      <ThemeProvider>
+        <GestureHandlerRootView style={styles.container}>
+          <RootLayoutNav />
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </PaperProvider>
   );
 }
 

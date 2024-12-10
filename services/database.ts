@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { Task } from '../types/database';
+import { Task, Category } from '../types/database';
 
 const db = SQLite.openDatabaseAsync('listify.db');
 
@@ -8,6 +8,15 @@ export const initDatabase = async () => {
     const database = await db;
     await database.execAsync(`
       DROP TABLE IF EXISTS tasks;
+      DROP TABLE IF EXISTS categories;
+      
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        icon TEXT NOT NULL,
+        color TEXT NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -113,6 +122,60 @@ export const DatabaseService = {
       }
     } catch (error) {
       console.error('Delete task error:', error);
+      return false;
+    }
+  },
+
+  async getCategories(): Promise<Category[]> {
+    try {
+      const database = await db;
+      const statement = await database.prepareAsync(
+        'SELECT * FROM categories ORDER BY name ASC'
+      );
+      try {
+        const result = await statement.executeAsync<Category>();
+        return await result.getAllAsync();
+      } finally {
+        await statement.finalizeAsync();
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+  },
+
+  async addCategory(name: string, icon: string, color: string): Promise<boolean> {
+    try {
+      const database = await db;
+      const statement = await database.prepareAsync(
+        'INSERT INTO categories (name, icon, color) VALUES (?, ?, ?)'
+      );
+      try {
+        await statement.executeAsync([name.trim(), icon, color]);
+        return true;
+      } finally {
+        await statement.finalizeAsync();
+      }
+    } catch (error) {
+      console.error('Add category error:', error);
+      return false;
+    }
+  },
+
+  async deleteCategory(id: number): Promise<boolean> {
+    try {
+      const database = await db;
+      const statement = await database.prepareAsync(
+        'DELETE FROM categories WHERE id = ?'
+      );
+      try {
+        await statement.executeAsync([id]);
+        return true;
+      } finally {
+        await statement.finalizeAsync();
+      }
+    } catch (error) {
+      console.error('Delete category error:', error);
       return false;
     }
   }
