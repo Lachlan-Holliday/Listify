@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, Pressable } from 'react-native';
 import { FAB, Card } from 'react-native-paper';
 import { Link, useFocusEffect } from 'expo-router';
 import { DatabaseService } from '../../services/database';
@@ -9,6 +9,8 @@ import { ThemedText } from '../../components/ThemedText';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/Colors';
+import * as Haptics from 'expo-haptics';
+import { Animated as RNAnimated } from 'react-native';
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -32,25 +34,44 @@ export default function TasksScreen() {
   };
 
   const handleDeleteTask = async (taskId: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     await DatabaseService.deleteTask(taskId);
     loadTasks();
   };
 
-  const renderRightActions = (taskId: number) => (
-    <View style={styles.deleteAction}>
-      <ThemedText 
-        style={styles.deleteText}
-        onPress={() => handleDeleteTask(taskId)}
+  const renderRightActions = (taskId: number, dragX: RNAnimated.AnimatedInterpolation<number>) => {
+    const scale = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <RNAnimated.View 
+        style={[
+          styles.deleteActionContainer,
+          { transform: [{ scale }] }
+        ]}
       >
-        Delete
-      </ThemedText>
-    </View>
-  );
+        <Pressable
+          onPress={() => handleDeleteTask(taskId)}
+          style={({ pressed }) => [
+            styles.deleteAction,
+            { transform: [{ scale: pressed ? 0.95 : 1 }] }
+          ]}
+          android_ripple={{ color: 'rgba(255, 255, 255, 0.2)', borderless: true }}
+        >
+          <ThemedText style={styles.deleteText}>Delete</ThemedText>
+        </Pressable>
+      </RNAnimated.View>
+    );
+  };
 
   const renderTaskItem = ({ item }: { item: Task }) => (
     <Swipeable
-      renderRightActions={() => renderRightActions(item.id)}
+      renderRightActions={(_, dragX) => renderRightActions(item.id, dragX)}
       overshootRight={false}
+      rightThreshold={40}
     >
       <Card
         style={[
@@ -60,7 +81,7 @@ export default function TasksScreen() {
             borderColor: isDark ? Colors.dark.border : Colors.light.border,
             borderWidth: 1,
           },
-          item.status === 'completed' && styles.completedTask
+          item.completed && styles.completedTask
         ]}
         onPress={() => handleCompleteTask(item.id)}>
         <Card.Content style={styles.cardContent}>
@@ -69,7 +90,7 @@ export default function TasksScreen() {
               style={[
                 styles.taskName,
                 { color: isDark ? Colors.dark.text : Colors.light.text },
-                item.status === 'completed' && {
+                item.completed && {
                   color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
                   textDecorationLine: 'line-through'
                 }
@@ -79,7 +100,7 @@ export default function TasksScreen() {
             </ThemedText>
             <View style={[
               styles.statusIndicator,
-              { backgroundColor: item.status === 'completed' ? 
+              { backgroundColor: item.completed ? 
                 (isDark ? Colors.dark.primary : Colors.light.primary) : 
                 '#4CAF50' 
               }
@@ -192,15 +213,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
+  deleteActionContainer: {
+    justifyContent: 'center',
+    marginLeft: 8,
+    height: 'auto',
+  },
   deleteAction: {
     backgroundColor: '#FF3B30',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
     marginBottom: 12,
   },
   deleteText: {
     color: 'white',
     fontWeight: '600',
+    fontSize: 16,
   },
 });

@@ -84,6 +84,21 @@ export default function CreateTaskScreen() {
           autoFocus
         />
 
+        <TextInput
+          label="Deadline (optional)"
+          value={deadline}
+          onChangeText={setDeadline}
+          style={[styles.input, { 
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+          }]}
+          textColor={isDark ? Colors.dark.text : Colors.light.text}
+          placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
+          mode="outlined"
+          outlineColor={isDark ? Colors.dark.border : Colors.light.border}
+          activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
+          placeholder="YYYY-MM-DD"
+        />
+
         <View style={styles.recurringSection}>
           <ThemedText style={[styles.sectionTitle, {
             color: isDark ? Colors.dark.text : Colors.light.text,
@@ -108,25 +123,12 @@ export default function CreateTaskScreen() {
                 primary: isDark ? Colors.dark.primary : Colors.light.primary,
                 secondaryContainer: isDark ? Colors.dark.card : Colors.light.card,
                 onSecondaryContainer: isDark ? Colors.dark.text : Colors.light.text,
+                outline: isDark ? Colors.dark.border : Colors.light.border,
+                onSurface: isDark ? '#FFFFFF' : Colors.light.text,
               }
             }}
           />
         </View>
-
-        <TextInput
-          label="Deadline (optional)"
-          value={deadline}
-          onChangeText={setDeadline}
-          style={[styles.input, { 
-            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-          }]}
-          textColor={isDark ? Colors.dark.text : Colors.light.text}
-          placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
-          mode="outlined"
-          outlineColor={isDark ? Colors.dark.border : Colors.light.border}
-          activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
-          placeholder="YYYY-MM-DD"
-        />
 
         <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
           <Button 
