@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Animated, Pressable } from 'react-native';
 import { TextInput, Button, SegmentedButtons } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { DatabaseService } from '../services/database';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
@@ -14,6 +15,7 @@ type RecurringOption = 'none' | 'daily' | 'weekly' | 'monthly';
 export default function CreateTaskScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const buttonScale = new Animated.Value(1);
 
   const [taskName, setTaskName] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -23,10 +25,28 @@ export default function CreateTaskScreen() {
   const params = useLocalSearchParams<{ category: string }>();
   const category = params.category;
 
+  const animateButton = () => {
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const handleCreateTask = async () => {
     if (!taskName.trim() || isSubmitting) return;
     
+    animateButton();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
+    
     try {
       const success = await DatabaseService.addTask(taskName, category, recurring, deadline);
       if (success) {
@@ -48,65 +68,88 @@ export default function CreateTaskScreen() {
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
     }]}>
-      <TextInput
-        label="Task Name"
-        value={taskName}
-        onChangeText={setTaskName}
-        style={[styles.input, { 
-          backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-        }]}
-        textColor={isDark ? Colors.dark.text : Colors.light.text}
-        placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
-        mode="outlined"
-        outlineColor={isDark ? Colors.dark.border : Colors.light.border}
-        activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
-        autoFocus
-      />
-
-      <View style={styles.recurringSection}>
-        <ThemedText style={styles.sectionTitle}>Recurring</ThemedText>
-        <SegmentedButtons
-          value={recurring}
-          onValueChange={value => setRecurring(value as RecurringOption)}
-          buttons={[
-            { value: 'none', label: 'Once' },
-            { value: 'daily', label: 'Daily' },
-            { value: 'weekly', label: 'Weekly' },
-            { value: 'monthly', label: 'Monthly' },
-          ]}
-          style={styles.segmentedButtons}
+      <View style={styles.content}>
+        <TextInput
+          label="Task Name"
+          value={taskName}
+          onChangeText={setTaskName}
+          style={[styles.input, { 
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+          }]}
+          textColor={isDark ? Colors.dark.text : Colors.light.text}
+          placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
+          mode="outlined"
+          outlineColor={isDark ? Colors.dark.border : Colors.light.border}
+          activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
+          autoFocus
         />
+
+        <View style={styles.recurringSection}>
+          <ThemedText style={[styles.sectionTitle, {
+            color: isDark ? Colors.dark.text : Colors.light.text,
+          }]}>
+            How often should this task repeat?
+          </ThemedText>
+          <SegmentedButtons
+            value={recurring}
+            onValueChange={value => {
+              Haptics.selectionAsync();
+              setRecurring(value as RecurringOption);
+            }}
+            buttons={[
+              { value: 'none', label: 'Once' },
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'monthly', label: 'Monthly' },
+            ]}
+            style={styles.segmentedButtons}
+            theme={{
+              colors: {
+                primary: isDark ? Colors.dark.primary : Colors.light.primary,
+                secondaryContainer: isDark ? Colors.dark.card : Colors.light.card,
+                onSecondaryContainer: isDark ? Colors.dark.text : Colors.light.text,
+              }
+            }}
+          />
+        </View>
+
+        <TextInput
+          label="Deadline (optional)"
+          value={deadline}
+          onChangeText={setDeadline}
+          style={[styles.input, { 
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+          }]}
+          textColor={isDark ? Colors.dark.text : Colors.light.text}
+          placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
+          mode="outlined"
+          outlineColor={isDark ? Colors.dark.border : Colors.light.border}
+          activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
+          placeholder="YYYY-MM-DD"
+        />
+
+        <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
+          <Button 
+            mode="contained" 
+            onPress={handleCreateTask}
+            style={[styles.button, {
+              backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+            }]}
+            labelStyle={[styles.buttonLabel, {
+              color: '#FFFFFF',
+            }]}
+            contentStyle={styles.buttonContent}
+            disabled={!taskName.trim() || isSubmitting}
+            loading={isSubmitting}
+          >
+            Create Task
+          </Button>
+        </Animated.View>
       </View>
 
-      <TextInput
-        label="Deadline (optional)"
-        value={deadline}
-        onChangeText={setDeadline}
-        style={[styles.input, { 
-          backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-        }]}
-        textColor={isDark ? Colors.dark.text : Colors.light.text}
-        placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
-        mode="outlined"
-        outlineColor={isDark ? Colors.dark.border : Colors.light.border}
-        activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
-        placeholder="YYYY-MM-DD"
-      />
-
-      <Button 
-        mode="contained" 
-        onPress={handleCreateTask}
-        style={[styles.button, {
-          backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary
-        }]}
-        textColor={isDark ? Colors.dark.text : '#FFFFFF'}
-        disabled={!taskName.trim() || isSubmitting}
-        loading={isSubmitting}
-      >
-        Create Task
-      </Button>
-      
-      <BouncingArrow onPress={handleDismiss} />
+      <View style={styles.footer}>
+        <BouncingArrow onPress={handleDismiss} />
+      </View>
     </ThemedView>
   );
 }
@@ -116,21 +159,49 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  content: {
+    flex: 1,
+  },
   input: {
-    marginBottom: 16,
+    marginBottom: 24,
+    borderRadius: 12,
   },
   recurringSection: {
-    marginBottom: 16,
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
   },
   sectionTitle: {
-    fontSize: 16,
-    marginBottom: 8,
-    fontWeight: '500',
+    fontSize: 18,
+    marginBottom: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   segmentedButtons: {
     marginBottom: 8,
   },
+  buttonContainer: {
+    marginTop: 32,
+    marginBottom: 16,
+  },
   button: {
-    marginTop: 8,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  buttonContent: {
+    height: 48,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 24,
   },
 }); 
