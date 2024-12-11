@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Pressable, useWindowDimensions } from 'react-native';
 import { FAB, Card } from 'react-native-paper';
 import { Link, useFocusEffect } from 'expo-router';
@@ -11,10 +11,88 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/Colors';
 import * as Haptics from 'expo-haptics';
 import { Animated as RNAnimated } from 'react-native';
+import { TaskCountdown } from '../../components/TaskCountdown';
 
 const DAYS_OF_WEEK = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
+
+// Create a new TaskCard component
+const TaskCard = ({ item, onComplete, onDelete }: { 
+  item: Task; 
+  onComplete: (id: number) => void;
+  onDelete: (id: number) => void;
+}) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const [categoryColor, setCategoryColor] = useState<string>('');
+
+  useEffect(() => {
+    const fetchCategoryColor = async () => {
+      const categories = await DatabaseService.getCategories();
+      const category = categories.find(c => c.name === item.category);
+      if (category) {
+        setCategoryColor(category.color);
+      }
+    };
+    fetchCategoryColor();
+  }, [item.category]);
+
+  return (
+    <Card
+      style={[
+        styles.taskCard,
+        {
+          backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+          elevation: 0,
+          borderBottomWidth: 4,
+          borderBottomColor: categoryColor,
+        },
+        item.completed && styles.completedTask
+      ]}
+      mode="contained"
+      onPress={() => onComplete(item.id)}>
+      <Card.Content style={styles.cardContent}>
+        <View style={styles.taskHeader}>
+          <ThemedText 
+            style={[
+              styles.taskName,
+              { color: isDark ? Colors.dark.text : Colors.light.text },
+              item.completed && {
+                color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
+                textDecorationLine: 'line-through'
+              }
+            ]}
+          >
+            {item.name}
+          </ThemedText>
+          <TaskCountdown date={item.date} time={item.time} />
+          <View style={styles.statusIndicator} />
+        </View>
+        {(item.date || item.time) && (
+          <View style={styles.timeInfo}>
+            {item.date && (
+              <ThemedText style={[
+                styles.timeText,
+                { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+              ]}>
+                {formatDisplayDate(item.date, item.recurring)}
+              </ThemedText>
+            )}
+            {item.time && (
+              <ThemedText style={[
+                styles.timeText,
+                { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+              ]}>
+                {item.time}
+              </ThemedText>
+            )}
+          </View>
+        )}
+      </Card.Content>
+    </Card>
+  );
+};
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -27,6 +105,19 @@ export default function TasksScreen() {
 
   const { width } = useWindowDimensions();
   const SWIPE_THRESHOLD = -width * 0.3;  // 30% of screen width
+
+  useEffect(() => {
+    // Initial load
+    loadTasks();
+
+    // Set up auto-refresh timer
+    const refreshTimer = setInterval(() => {
+      loadTasks();
+    }, 60000); // Refresh every minute
+
+    // Cleanup timer on unmount
+    return () => clearInterval(refreshTimer);
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -78,6 +169,7 @@ export default function TasksScreen() {
     );
   };
 
+  // Update renderTaskItem to use the new component
   const renderTaskItem = ({ item }: { item: Task }) => (
     <Swipeable
       renderRightActions={(_, dragX) => renderRightActions(item.id, dragX)}
@@ -90,55 +182,11 @@ export default function TasksScreen() {
         }
       }}
     >
-      <Card
-        style={[
-          styles.taskCard,
-          {
-            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-            elevation: 0,
-          },
-          item.completed && styles.completedTask
-        ]}
-        mode="contained"
-        onPress={() => handleCompleteTask(item.id)}>
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.taskHeader}>
-            <ThemedText 
-              style={[
-                styles.taskName,
-                { color: isDark ? Colors.dark.text : Colors.light.text },
-                item.completed && {
-                  color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
-                  textDecorationLine: 'line-through'
-                }
-              ]}
-            >
-              {item.name}
-            </ThemedText>
-            <View style={styles.statusIndicator} />
-          </View>
-          {(item.date || item.time) && (
-            <View style={styles.timeInfo}>
-              {item.date && (
-                <ThemedText style={[
-                  styles.timeText,
-                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
-                ]}>
-                  {formatDisplayDate(item.date, item.recurring)}
-                </ThemedText>
-              )}
-              {item.time && (
-                <ThemedText style={[
-                  styles.timeText,
-                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
-                ]}>
-                  {item.time}
-                </ThemedText>
-              )}
-            </View>
-          )}
-        </Card.Content>
-      </Card>
+      <TaskCard 
+        item={item}
+        onComplete={handleCompleteTask}
+        onDelete={handleDeleteTask}
+      />
     </Swipeable>
   );
 
@@ -200,6 +248,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    gap: 8,
   },
   taskName: {
     fontSize: 16,

@@ -56,8 +56,6 @@ export const initDatabase = async () => {
   try {
     const database = await db;
     await database.execAsync(`
-      DROP TABLE IF EXISTS tasks;
-      
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -91,7 +89,7 @@ export const initDatabase = async () => {
       }
     }
 
-    console.log('Database initialized with new schema');
+    console.log('Database initialized');
   } catch (error) {
     console.error('Database initialization error:', error);
   }
