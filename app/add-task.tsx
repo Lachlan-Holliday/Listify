@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, ScrollView, View, Pressable} from 'react-native';
 import { Card, FAB, Button } from 'react-native-paper';
 import { router, useFocusEffect } from 'expo-router';
@@ -11,11 +11,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
 import * as Haptics from 'expo-haptics';
 import { Animated as RNAnimated } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function AddTaskScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [categories, setCategories] = useState<Category[]>([]);
+  const swipeRef = useRef(false);
+  const swipeTimeoutRef = useRef<NodeJS.Timeout>();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -62,6 +65,15 @@ export default function AddTaskScreen() {
     );
   };
 
+  const handlePress = (categoryName: string) => {
+    if (!swipeRef.current) {
+      router.push({
+        pathname: '/create-task',
+        params: { category: categoryName }
+      });
+    }
+  };
+
   return (
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
@@ -73,50 +85,80 @@ export default function AddTaskScreen() {
             renderRightActions={(_, dragX) => renderRightActions(category.id, dragX)}
             overshootRight={false}
             rightThreshold={40}
+            onSwipeableWillOpen={() => {
+              swipeRef.current = true;
+            }}
+            onSwipeableClose={() => {
+              if (swipeTimeoutRef.current) {
+                clearTimeout(swipeTimeoutRef.current);
+              }
+              swipeTimeoutRef.current = setTimeout(() => {
+                swipeRef.current = false;
+              }, 500);
+            }}
           >
-            <Card
-              style={[
-                styles.categoryCard,
-                { backgroundColor: category.color }
-              ]}
-              onPress={() => router.push({
-                pathname: '/create-task',
-                params: { category: category.name }
-              })}>
-              <Card.Content style={styles.cardContent}>
-                <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
-                <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
-              </Card.Content>
-            </Card>
+            <Pressable
+              onPress={() => handlePress(category.name)}
+            >
+              <Card
+                style={[
+                  styles.categoryCard,
+                  { backgroundColor: category.color }
+                ]}
+              >
+                <Card.Content style={styles.cardContent}>
+                  <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
+                  <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
+                </Card.Content>
+              </Card>
+            </Pressable>
           </Swipeable>
         ))}
       </ScrollView>
 
       <View style={styles.bottomContainer}>
-        <Button
-          mode="outlined"
-          onPress={async () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            await DatabaseService.resetCategories();
-            loadCategories();
-          }}
-          style={[styles.resetButton, {
-            borderColor: isDark ? Colors.dark.border : Colors.light.border,
-          }]}
-          textColor={isDark ? Colors.dark.text : Colors.light.text}
-          labelStyle={{ color: isDark ? Colors.dark.text : Colors.light.text }}
-        >
-          Reset Categories
-        </Button>
+        <View style={styles.buttonGroup}>
+          <Button
+            mode="outlined"
+            onPress={async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              await DatabaseService.resetCategories();
+              loadCategories();
+            }}
+            style={[styles.resetButton, {
+              borderColor: isDark ? Colors.dark.border : Colors.light.border,
+            }]}
+            textColor={isDark ? Colors.dark.text : Colors.light.text}
+            labelStyle={{ color: isDark ? Colors.dark.text : Colors.light.text }}
+          >
+            Reset Categories
+          </Button>
+
+          <FAB
+            icon={props => (
+              <MaterialCommunityIcons
+                name="restore"
+                size={24}
+                color={isDark ? Colors.dark.text : Colors.light.text}
+              />
+            )}
+            size="small"
+            style={[styles.undoFab, {
+              backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+            }]}
+            onPress={async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              await DatabaseService.undoLastAction();
+              loadCategories();
+            }}
+          />
+        </View>
 
         <FAB
           icon="plus"
-          style={[
-            styles.fab,
-            {
-              backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
-            }
-          ]}
+          style={[styles.fab, {
+            backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
+          }]}
           color="#FFFFFF"
           onPress={() => router.push('/add-category')}
         />
@@ -198,9 +240,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  buttonGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   resetButton: {
     borderRadius: 8,
     borderWidth: 1,
+  },
+  undoFab: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   fab: {
     borderRadius: 16,

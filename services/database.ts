@@ -11,6 +11,15 @@ const DEFAULT_CATEGORIES = [
   { name: 'Personal', icon: '🎯', color: '#D89BFF' },
 ];
 
+type CategoryAction = {
+  type: 'DELETE' | 'ADD' | 'RESET';
+  category?: Category;
+  categories?: Category[]; // For reset action
+};
+
+let lastAction: CategoryAction | null = null;
+let previousCategories: Category[] = [];
+
 export const initDatabase = async () => {
   try {
     const database = await db;
@@ -169,12 +178,14 @@ export const DatabaseService = {
       const statement = await database.prepareAsync(
         'INSERT INTO categories (name, icon, color) VALUES (?, ?, ?)'
       );
-      try {
-        await statement.executeAsync([name.trim(), icon, color]);
-        return true;
-      } finally {
-        await statement.finalizeAsync();
-      }
+      await statement.executeAsync([name.trim(), icon, color]);
+      
+      lastAction = {
+        type: 'ADD',
+        category: { name, icon, color } as Category
+      };
+      
+      return true;
     } catch (error) {
       console.error('Add category error:', error);
       return false;
@@ -184,15 +195,20 @@ export const DatabaseService = {
   async deleteCategory(id: number): Promise<boolean> {
     try {
       const database = await db;
-      const statement = await database.prepareAsync(
-        'DELETE FROM categories WHERE id = ?'
-      );
-      try {
-        await statement.executeAsync([id]);
-        return true;
-      } finally {
-        await statement.finalizeAsync();
-      }
+      // Store category before deletion
+      const statement = await database.prepareAsync('SELECT * FROM categories WHERE id = ?');
+      const result = await statement.executeAsync<Category>([id]);
+      const categoryToDelete = (await result.getAllAsync())[0];
+      
+      const deleteStatement = await database.prepareAsync('DELETE FROM categories WHERE id = ?');
+      await deleteStatement.executeAsync([id]);
+      
+      lastAction = {
+        type: 'DELETE',
+        category: categoryToDelete
+      };
+      
+      return true;
     } catch (error) {
       console.error('Delete category error:', error);
       return false;
@@ -201,17 +217,72 @@ export const DatabaseService = {
 
   async resetCategories(): Promise<boolean> {
     try {
+      // Store current categories before reset
+      previousCategories = await this.getCategories();
+      
       const database = await db;
       await database.execAsync('DELETE FROM categories;');
       
-      // Add default categories
       for (const category of DEFAULT_CATEGORIES) {
         await this.addCategory(category.name, category.icon, category.color);
       }
+      
+      lastAction = {
+        type: 'RESET',
+        categories: previousCategories
+      };
+      
       return true;
     } catch (error) {
       console.error('Reset categories error:', error);
       return false;
     }
   },
+
+  async undoLastAction(): Promise<boolean> {
+    if (!lastAction) return false;
+
+    // Non-null assertion since we checked above
+    const action = lastAction!;
+
+    try {
+      const database = await db;
+      switch (action.type) {
+        case 'DELETE':
+          if (action.category) {
+            await this.addCategory(
+              action.category.name,
+              action.category.icon,
+              action.category.color
+            );
+          }
+          break;
+
+        case 'ADD':
+          if (action.category) {
+            const categories = await this.getCategories();
+            const categoryToDelete = categories.find(c => c.name === action.category!.name);
+            if (categoryToDelete) {
+              await this.deleteCategory(categoryToDelete.id);
+            }
+          }
+          break;
+
+        case 'RESET':
+          if (action.categories) {
+            await database.execAsync('DELETE FROM categories;');
+            for (const category of action.categories) {
+              await this.addCategory(category.name, category.icon, category.color);
+            }
+          }
+          break;
+      }
+
+      lastAction = null;
+      return true;
+    } catch (error) {
+      console.error('Undo error:', error);
+      return false;
+    }
+  }
 };
