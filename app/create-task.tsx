@@ -137,7 +137,10 @@ export default function CreateTaskScreen() {
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
     }]}>
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         <TextInput
           label="Task Name"
           value={taskName}
@@ -189,8 +192,16 @@ export default function CreateTaskScreen() {
           <Button
             mode="outlined"
             onPress={() => showMode('date')}
-            style={styles.pickerButton}
+            style={[
+              styles.pickerButton,
+              {
+                borderColor: isDark ? Colors.dark.border : Colors.light.border,
+                backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+              }
+            ]}
             icon="calendar"
+            textColor={isDark ? Colors.dark.text : Colors.light.text}
+            contentStyle={styles.pickerButtonContent}
           >
             {date || 'Select Date'}
           </Button>
@@ -274,8 +285,16 @@ export default function CreateTaskScreen() {
         <Button
           mode="outlined"
           onPress={() => showMode('time')}
-          style={styles.pickerButton}
+          style={[
+            styles.pickerButton,
+            {
+              borderColor: isDark ? Colors.dark.border : Colors.light.border,
+              backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+            }
+          ]}
           icon="clock"
+          textColor={isDark ? Colors.dark.text : Colors.light.text}
+          contentStyle={styles.pickerButtonContent}
         >
           {timeDisplay || 'Select Time'}
         </Button>
@@ -398,6 +417,11 @@ const styles = StyleSheet.create({
   pickerButton: {
     marginBottom: 24,
     borderRadius: 12,
+    borderWidth: 1,
+  },
+  pickerButtonContent: {
+    height: 48,
+    paddingHorizontal: 16,
   },
   weekDayPicker: {
     marginBottom: 24,

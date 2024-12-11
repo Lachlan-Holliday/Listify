@@ -112,7 +112,12 @@ export default function AddTaskScreen() {
               >
                 <Card.Content style={styles.cardContent}>
                   <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
-                  <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
+                  <ThemedText style={[
+                    styles.categoryName,
+                    { color: '#000000' }
+                  ]}>
+                    {category.name}
+                  </ThemedText>
                 </Card.Content>
               </Card>
             </Pressable>

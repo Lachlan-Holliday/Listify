@@ -1,22 +1,25 @@
-import React, { useEffect } from 'react';
-import { Animated, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColor } from '../hooks/useThemeColor';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Animated, Pressable, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
+import { Colors } from '../constants/Colors';
 import { ThemedText } from './ThemedText';
 
-interface BouncingArrowProps {
-  onPress?: () => void;
+interface Props {
+  onPress: () => void;
 }
 
-export function BouncingArrow({ onPress }: BouncingArrowProps) {
-  const translateY = new Animated.Value(0);
-  const iconColor = useThemeColor({ light: '#999', dark: '#666' }, 'text') as string;
+export function BouncingArrow({ onPress }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const translateY = useRef(new Animated.Value(0)).current;
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(translateY, {
-          toValue: -10,
+          toValue: 5,
           duration: 1000,
           useNativeDriver: true,
         }),
@@ -28,30 +31,56 @@ export function BouncingArrow({ onPress }: BouncingArrowProps) {
       ])
     );
 
-    animation.start();
+    if (isVisible) {
+      animation.start();
+    } else {
+      animation.stop();
+    }
+
     return () => animation.stop();
-  }, []);
+  }, [isVisible]);
+
+  const handleLayout = (event: any) => {
+    // Check if component is being overlaid by measuring its position
+    const { y } = event.nativeEvent.layout;
+    setIsVisible(y >= 0);
+  };
+
+  if (!isVisible) return null;
 
   return (
     <Animated.View 
-      style={[styles.container, { transform: [{ translateY }] }]}
-      onTouchEnd={onPress}
+      style={[
+        styles.container,
+        { transform: [{ translateY }] }
+      ]}
+      onLayout={handleLayout}
     >
-      <ThemedText style={styles.text}>Swipe down to cancel</ThemedText>
-      <Ionicons name="chevron-down" size={30} color={iconColor} />
+      <ThemedText style={[
+        styles.text,
+        { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+      ]}>
+        Swipe down to cancel
+      </ThemedText>
+      <Pressable onPress={onPress}>
+        <MaterialCommunityIcons
+          name="chevron-down"
+          size={24}
+          color={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
+        />
+      </Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
+    padding: 16,
     alignItems: 'center',
   },
   text: {
+    fontSize: 14,
     marginBottom: 8,
-    opacity: 0.6,
+    opacity: 0.8,
   },
 }); 

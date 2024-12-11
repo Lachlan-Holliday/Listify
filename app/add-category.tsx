@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
 import * as Haptics from 'expo-haptics';
 import { ThemedText } from '../components/ThemedText';
+import { BouncingArrow } from '../components/BouncingArrow';
 
 const PRESET_COLORS = [
   '#FF9B9B', // Red
@@ -54,11 +55,18 @@ export default function AddCategoryScreen() {
     }
   };
 
+  const handleDismiss = () => {
+    router.back();
+  };
+
   return (
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
     }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <TextInput
           label="Category Name"
           value={name}
@@ -112,6 +120,10 @@ export default function AddCategoryScreen() {
           Add Category
         </Button>
       </ScrollView>
+
+      <View style={styles.footer}>
+        <BouncingArrow onPress={handleDismiss} />
+      </View>
     </ThemedView>
   );
 }
@@ -166,5 +178,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
     paddingVertical: 8,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 24,
   },
 }); 
