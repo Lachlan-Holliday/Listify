@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, FlatList, View, Pressable } from 'react-native';
+import { StyleSheet, FlatList, View, Pressable, useWindowDimensions } from 'react-native';
 import { FAB, Card } from 'react-native-paper';
 import { Link, useFocusEffect } from 'expo-router';
 import { DatabaseService } from '../../services/database';
@@ -20,6 +20,9 @@ export default function TasksScreen() {
   const fabStyle = {
     backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
   };
+
+  const { width } = useWindowDimensions();
+  const SWIPE_THRESHOLD = -width * 0.3;  // 30% of screen width
 
   useFocusEffect(
     React.useCallback(() => {
@@ -76,6 +79,12 @@ export default function TasksScreen() {
       renderRightActions={(_, dragX) => renderRightActions(item.id, dragX)}
       overshootRight={false}
       rightThreshold={40}
+      onSwipeableWillOpen={() => {
+        if (item.completed) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          handleDeleteTask(item.id);
+        }
+      }}
     >
       <Card
         style={[
