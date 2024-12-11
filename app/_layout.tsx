@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
 import { PaperProvider } from 'react-native-paper';
 import { FilterProvider } from '../contexts/FilterContext';
+import { router } from 'expo-router';
 
 function RootLayoutNav() {
   const { theme } = useTheme();
@@ -46,6 +47,13 @@ function RootLayoutNav() {
           title: 'Add Category'
         }} 
       />
+      <Stack.Screen 
+        name="settings" 
+        options={{
+          presentation: 'modal',
+          title: 'Settings',
+        }} 
+      />
     </Stack>
   );
 }
@@ -53,6 +61,7 @@ function RootLayoutNav() {
 export default function RootLayout() {
   useEffect(() => {
     initDatabase();
+    router.replace('/(tabs)/dashboard');
   }, []);
 
   return (

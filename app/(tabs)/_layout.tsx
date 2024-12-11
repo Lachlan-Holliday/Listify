@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/Colors';
 import { useFilter } from '../../contexts/FilterContext';
+import { router } from 'expo-router';
 
 export default function TabLayout() {
   const { theme } = useTheme();
@@ -12,6 +13,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="dashboard"
       screenOptions={{
         headerStyle: {
           backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
@@ -40,6 +42,21 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="chart-line" size={24} color={color} />
           ),
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push('/settings')}
+              style={({ pressed }) => ({
+                marginRight: 16,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Ionicons 
+                name="settings-outline" 
+                size={24} 
+                color={isDark ? Colors.dark.text : Colors.light.text} 
+              />
+            </Pressable>
+          ),
         }}
       />
       <Tabs.Screen
@@ -63,15 +80,6 @@ export default function TabLayout() {
                 color={isDark ? Colors.dark.text : Colors.light.text}
               />
             </Pressable>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="settings-outline" size={24} color={color} />
           ),
         }}
       />

@@ -1,9 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { Switch } from 'react-native-paper';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { useTheme } from '../../contexts/ThemeContext';
-import { Colors } from '../../constants/Colors';
+import { ThemedText } from '../components/ThemedText';
+import { ThemedView } from '../components/ThemedView';
+import { useTheme } from '../contexts/ThemeContext';
+import { Colors } from '../constants/Colors';
+import { BouncingArrow } from '../components/BouncingArrow';
+import { View } from 'react-native';
+import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
@@ -53,6 +56,10 @@ export default function SettingsScreen() {
           />
         </ThemedView>
       </ThemedView>
+      
+      <View style={styles.footer}>
+        <BouncingArrow onPress={() => router.back()} />
+      </View>
     </ThemedView>
   );
 }
@@ -81,5 +88,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 12,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 24,
   },
 });
