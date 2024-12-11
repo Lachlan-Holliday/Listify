@@ -316,5 +316,9 @@ export const DatabaseService = {
       console.error('Undo error:', error);
       return false;
     }
+  },
+
+  hasUndoAction(): boolean {
+    return lastAction !== null;
   }
 };

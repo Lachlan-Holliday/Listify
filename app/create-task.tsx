@@ -27,7 +27,7 @@ export default function CreateTaskScreen() {
   const [taskName, setTaskName] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [recurring, setRecurring] = useState<RecurringOption>('none');
+  const [recurring, setRecurring] = useState<RecurringOption | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
@@ -285,22 +285,24 @@ export default function CreateTaskScreen() {
           </View>
         )}
 
-        <Button
-          mode="outlined"
-          onPress={() => showMode('time')}
-          style={[
-            styles.pickerButton,
-            {
-              borderColor: isDark ? Colors.dark.border : Colors.light.border,
-              backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-            }
-          ]}
-          icon="clock"
-          textColor={isDark ? Colors.dark.text : Colors.light.text}
-          contentStyle={styles.pickerButtonContent}
-        >
-          {timeDisplay || 'Select Time'}
-        </Button>
+        {recurring && (
+          <Button
+            mode="outlined"
+            onPress={() => showMode('time')}
+            style={[
+              styles.pickerButton,
+              {
+                borderColor: isDark ? Colors.dark.border : Colors.light.border,
+                backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
+              }
+            ]}
+            icon="clock"
+            textColor={isDark ? Colors.dark.text : Colors.light.text}
+            contentStyle={styles.pickerButtonContent}
+          >
+            {timeDisplay || 'Select Time'}
+          </Button>
+        )}
 
         {show && (
           <DateTimePicker

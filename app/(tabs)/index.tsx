@@ -17,6 +17,12 @@ const DAYS_OF_WEEK = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
+// Add a type for countdown status
+type CountdownStatus = {
+  value: number;  // Milliseconds until deadline
+  display: string; // The display string (e.g., "1h", "2d", "Overdue")
+};
+
 // Create a new TaskCard component
 const TaskCard = ({ item, onComplete, onDelete }: { 
   item: Task; 
@@ -26,7 +32,7 @@ const TaskCard = ({ item, onComplete, onDelete }: {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [categoryColor, setCategoryColor] = useState<string>('');
-  const [countdownStatus, setCountdownStatus] = useState('');
+  const [countdownStatus, setCountdownStatus] = useState<CountdownStatus>({ value: 0, display: '' });
 
   useEffect(() => {
     const fetchCategoryColor = async () => {
@@ -38,6 +44,13 @@ const TaskCard = ({ item, onComplete, onDelete }: {
     };
     fetchCategoryColor();
   }, [item.category]);
+
+  const handleCountdownChange = (status: string) => {
+    setCountdownStatus({
+      value: status === 'Overdue' ? -1 : 0,
+      display: status
+    });
+  };
 
   return (
     <Card
@@ -65,7 +78,7 @@ const TaskCard = ({ item, onComplete, onDelete }: {
                   textDecorationLine: 'line-through',
                   textDecorationColor: '#4CAF50',
                 },
-                !item.completed && countdownStatus === 'Overdue' && {
+                !item.completed && countdownStatus.display === 'Overdue' && {
                   color: '#FF3B30',
                 }
               ]}
@@ -96,7 +109,7 @@ const TaskCard = ({ item, onComplete, onDelete }: {
               date={item.date} 
               time={item.time} 
               isCompleted={item.completed}
-              onCountdownChange={setCountdownStatus}
+              onCountdownChange={handleCountdownChange}
             />
           </View>
         </View>
@@ -109,6 +122,59 @@ export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const calculateCountdown = (date?: string, time?: string): number => {
+    if (!date && !time) return Number.MAX_VALUE;
+    const now = new Date();
+    let targetDate = new Date();
+
+    if (date === 'DAILY') {
+      targetDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        time ? parseInt(time.split(':')[0]) : 23,
+        time ? parseInt(time.split(':')[1]) : 59
+      );
+      if (targetDate.getTime() <= now.getTime()) {
+        targetDate.setDate(targetDate.getDate() + 1);
+      }
+    } else if (date) {
+      const [month, day, year] = date.split('-');
+      const taskTime = time ? time.split(':') : ['23', '59'];
+      targetDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(taskTime[0]),
+        parseInt(taskTime[1])
+      );
+      if (targetDate.getTime() <= now.getTime()) return -1;
+    }
+    return targetDate.getTime() - now.getTime();
+  };
+
+  const loadTasks = async () => {
+    const tasks = await DatabaseService.getTasks();
+    const countdownMap = new Map<number, number>();
+    
+    for (const task of tasks) {
+      if (task.completed) {
+        countdownMap.set(task.id, Number.MAX_VALUE);
+        continue;
+      }
+      const countdown = calculateCountdown(task.date, task.time);
+      countdownMap.set(task.id, countdown);
+    }
+    
+    const sortedTasks = tasks.sort((a, b) => {
+      const aValue = countdownMap.get(a.id) ?? Number.MAX_VALUE;
+      const bValue = countdownMap.get(b.id) ?? Number.MAX_VALUE;
+      return aValue - bValue;
+    });
+    
+    setTasks(sortedTasks);
+  };
 
   const fabStyle = {
     backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary,
@@ -135,11 +201,6 @@ export default function TasksScreen() {
       loadTasks();
     }, [])
   );
-
-  const loadTasks = async () => {
-    const tasks = await DatabaseService.getTasks();
-    setTasks(tasks);
-  };
 
   const handleCompleteTask = async (taskId: number) => {
     await DatabaseService.toggleTask(taskId);

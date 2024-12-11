@@ -17,6 +17,7 @@ export default function AddTaskScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [categories, setCategories] = useState<Category[]>([]);
+  const [hasUndoAction, setHasUndoAction] = useState(false);
   const swipeRef = useRef(false);
   const swipeTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -26,9 +27,15 @@ export default function AddTaskScreen() {
     }, [])
   );
 
+  const checkUndoAvailability = async () => {
+    const hasUndo = await DatabaseService.hasUndoAction();
+    setHasUndoAction(hasUndo);
+  };
+
   const loadCategories = async () => {
     const cats = await DatabaseService.getCategories();
     setCategories(cats);
+    checkUndoAvailability();
   };
 
   const handleDeleteCategory = async (categoryId: number) => {
@@ -143,24 +150,24 @@ export default function AddTaskScreen() {
             Reset Categories
           </Button>
 
-          <FAB
-            icon={props => (
-              <MaterialCommunityIcons
-                name="restore"
-                size={24}
-                color={isDark ? Colors.dark.text : Colors.light.text}
-              />
-            )}
-            size="small"
-            style={[styles.undoFab, {
-              backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-            }]}
-            onPress={async () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              await DatabaseService.undoLastAction();
-              loadCategories();
-            }}
-          />
+          {hasUndoAction && (
+            <FAB
+              icon={props => (
+                <MaterialCommunityIcons
+                  name="restore"
+                  size={24}
+                  color={isDark ? Colors.dark.text : Colors.light.text}
+                />
+              )}
+              size="small"
+              style={styles.undoFab}
+              onPress={async () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                await DatabaseService.undoLastAction();
+                loadCategories();
+              }}
+            />
+          )}
         </View>
 
         <FAB
@@ -264,11 +271,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    backgroundColor: 'transparent',
+    elevation: 0,
+    shadowColor: 'transparent',
   },
   fab: {
     borderRadius: 16,
