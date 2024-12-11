@@ -13,6 +13,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 type RecurringOption = 'none' | 'daily' | 'weekly' | 'monthly';
 
+const DAYS_OF_WEEK = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+];
+
+const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
+
 export default function CreateTaskScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -28,6 +34,8 @@ export default function CreateTaskScreen() {
   const [mode, setMode] = useState<'date' | 'time'>('date');
   const [show, setShow] = useState(false);
   const [timeDisplay, setTimeDisplay] = useState('');
+  const [selectedWeekDay, setSelectedWeekDay] = useState<number>(new Date().getDay());
+  const [selectedMonthDay, setSelectedMonthDay] = useState<number>(new Date().getDate());
 
   const params = useLocalSearchParams<{ category: string }>();
   const category = params.category;
@@ -55,11 +63,18 @@ export default function CreateTaskScreen() {
     setIsSubmitting(true);
     
     try {
+      const currentDate = new Date();
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = currentDate.getDate().toString().padStart(2, '0');
+      const taskDate = recurring === 'daily' ? 
+        `${month}-${day}` : 
+        date;
+
       const success = await DatabaseService.addTask(
         taskName, 
         category, 
         recurring, 
-        date, 
+        taskDate, 
         time
       );
       if (success) {
@@ -85,7 +100,9 @@ export default function CreateTaskScreen() {
     if (currentDate) {
       if (mode === 'date') {
         setSelectedDate(currentDate);
-        setDate(currentDate.toISOString().split('T')[0]);
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = currentDate.getDate().toString().padStart(2, '0');
+        setDate(`${month}-${day}`);
       } else {
         setSelectedTime(currentDate);
         const hours24 = currentDate.getHours().toString().padStart(2, '0');
@@ -147,6 +164,7 @@ export default function CreateTaskScreen() {
             onValueChange={value => {
               Haptics.selectionAsync();
               setRecurring(value as RecurringOption);
+              setShow(false);
             }}
             buttons={[
               { value: 'none', label: 'Once' },
@@ -167,7 +185,7 @@ export default function CreateTaskScreen() {
           />
         </View>
 
-        {(recurring === 'weekly' || recurring === 'monthly') && (
+        {recurring === 'none' && (
           <Button
             mode="outlined"
             onPress={() => showMode('date')}
@@ -176,6 +194,81 @@ export default function CreateTaskScreen() {
           >
             {date || 'Select Date'}
           </Button>
+        )}
+
+        {recurring === 'weekly' && (
+          <View style={styles.weekDayPicker}>
+            <ThemedText style={styles.pickerTitle}>Select Day of Week</ThemedText>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.weekDayContainer}
+            >
+              {DAYS_OF_WEEK.map((day, index) => (
+                <Pressable
+                  key={day}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setSelectedWeekDay(index);
+                    setDate(day);
+                  }}
+                  style={[
+                    styles.weekDayButton,
+                    {
+                      backgroundColor: selectedWeekDay === index ? 
+                        (isDark ? Colors.dark.primary : Colors.light.primary) : 
+                        (isDark ? Colors.dark.card : Colors.light.card),
+                    }
+                  ]}
+                >
+                  <ThemedText style={[
+                    styles.weekDayText,
+                    selectedWeekDay === index && styles.selectedWeekDayText
+                  ]}>
+                    {day.slice(0, 3)}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {recurring === 'monthly' && (
+          <View style={styles.monthDayPicker}>
+            <ThemedText style={styles.pickerTitle}>Select Day of Month</ThemedText>
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              style={styles.monthDayContainer}
+            >
+              <View style={styles.monthDayGrid}>
+                {DAYS_OF_MONTH.map((day) => (
+                  <Pressable
+                    key={day}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setSelectedMonthDay(day);
+                      setDate(day.toString());
+                    }}
+                    style={[
+                      styles.monthDayButton,
+                      {
+                        backgroundColor: selectedMonthDay === day ? 
+                          (isDark ? Colors.dark.primary : Colors.light.primary) : 
+                          (isDark ? Colors.dark.card : Colors.light.card),
+                      }
+                    ]}
+                  >
+                    <ThemedText style={[
+                      styles.monthDayText,
+                      selectedMonthDay === day && styles.selectedMonthDayText
+                    ]}>
+                      {day}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
         )}
 
         <Button
@@ -194,7 +287,17 @@ export default function CreateTaskScreen() {
             mode={mode}
             is24Hour={false}
             onChange={onChange}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+            maximumDate={new Date(new Date().getFullYear(), 11, 31)}
+            minimumDate={new Date(new Date().getFullYear(), 0, 1)}
+            style={{ width: 320 }}
+            {...(Platform.OS === 'ios' && {
+              textColor: isDark ? Colors.dark.text : Colors.light.text,
+              accentColor: isDark ? Colors.dark.primary : Colors.light.primary,
+            })}
+            {...(Platform.OS === 'android' && {
+              dateFormat: "dayofweek day month"
+            })}
           />
         )}
 
@@ -295,5 +398,56 @@ const styles = StyleSheet.create({
   pickerButton: {
     marginBottom: 24,
     borderRadius: 12,
+  },
+  weekDayPicker: {
+    marginBottom: 24,
+  },
+  weekDayContainer: {
+    paddingVertical: 8,
+    gap: 8,
+  },
+  weekDayButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  weekDayText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  selectedWeekDayText: {
+    color: '#FFFFFF',
+  },
+  monthDayPicker: {
+    marginBottom: 24,
+  },
+  monthDayContainer: {
+    maxHeight: 200,
+  },
+  monthDayGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  monthDayButton: {
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  monthDayText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  selectedMonthDayText: {
+    color: '#FFFFFF',
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
   },
 }); 

@@ -12,6 +12,10 @@ import { Colors } from '../../constants/Colors';
 import * as Haptics from 'expo-haptics';
 import { Animated as RNAnimated } from 'react-native';
 
+const DAYS_OF_WEEK = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+];
+
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { theme } = useTheme();
@@ -120,7 +124,7 @@ export default function TasksScreen() {
                   styles.timeText,
                   { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
                 ]}>
-                  {new Date(item.date).toLocaleDateString()}
+                  {formatDisplayDate(item.date, item.recurring)}
                 </ThemedText>
               )}
               {item.time && (
@@ -264,3 +268,24 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 });
+
+const formatDisplayDate = (date: string | undefined, recurring: string): string => {
+  if (!date) return '';
+
+  switch (recurring) {
+    case 'daily':
+      return 'Every day';
+      
+    case 'weekly':
+      const [_, dayNum] = date.split('-');
+      return `Every ${DAYS_OF_WEEK[parseInt(dayNum)]}`;
+      
+    case 'monthly':
+      const [__, dayOfMonth] = date.split('-');
+      return `Monthly on day ${dayOfMonth}`;
+      
+    default:
+      const [month, day, year] = date.split('-');
+      return new Date(`${year}-${month}-${day}`).toLocaleDateString();
+  }
+};

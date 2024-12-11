@@ -11,6 +11,10 @@ const DEFAULT_CATEGORIES = [
   { name: 'Personal', icon: '🎯', color: '#D89BFF' },
 ];
 
+const DAYS_OF_WEEK = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+];
+
 type CategoryAction = {
   type: 'DELETE' | 'ADD' | 'RESET';
   category?: Category;
@@ -19,6 +23,34 @@ type CategoryAction = {
 
 let lastAction: CategoryAction | null = null;
 let previousCategories: Category[] = [];
+
+// Add this helper function to standardize date formats
+const formatDateForStorage = (date: string, recurring: string): string => {
+  switch (recurring) {
+    case 'none':
+      // Store as MM-DD-YYYY
+      const [month, day] = date.split('-');
+      const year = new Date().getFullYear();
+      return `${month}-${day}-${year}`;
+      
+    case 'daily':
+      // Store as DAILY
+      return 'DAILY';
+      
+    case 'weekly':
+      // Store as WEEKLY-{DAY_NUMBER}
+      // Convert day name to number (0-6)
+      const dayIndex = DAYS_OF_WEEK.indexOf(date);
+      return `WEEKLY-${dayIndex}`;
+      
+    case 'monthly':
+      // Store as MONTHLY-{DAY_NUMBER}
+      return `MONTHLY-${date}`;
+      
+    default:
+      return date;
+  }
+};
 
 export const initDatabase = async () => {
   try {
@@ -100,24 +132,16 @@ export const DatabaseService = {
       );
       try {
         const validRecurring = ['none', 'daily', 'weekly', 'monthly'].includes(recurring) ? recurring : 'none';
+        const formattedDate = date ? formatDateForStorage(date, validRecurring) : null;
         
-        console.log('Adding task:', {
-          name,
-          category,
-          recurring: validRecurring,
-          date: date || 'none',
-          time: time || 'none'
-        });
-
         await statement.executeAsync([
           name.trim(),
           category.trim(),
           validRecurring,
-          date?.trim() || null,
+          formattedDate,
           time?.trim() || null
         ]);
         
-        console.log('Task added successfully');
         return true;
       } finally {
         await statement.finalizeAsync();
