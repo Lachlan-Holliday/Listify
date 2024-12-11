@@ -111,21 +111,27 @@ export default function TasksScreen() {
             >
               {item.name}
             </ThemedText>
-            <View style={[
-              styles.statusIndicator,
-              { backgroundColor: item.completed ? 
-                (isDark ? Colors.dark.primary : Colors.light.primary) : 
-                '#4CAF50' 
-              }
-            ]} />
+            <View style={styles.statusIndicator} />
           </View>
-          {item.deadline && (
-            <ThemedText style={[
-              styles.deadline,
-              { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
-            ]}>
-              Due: {new Date(item.deadline).toLocaleDateString()}
-            </ThemedText>
+          {(item.date || item.time) && (
+            <View style={styles.timeInfo}>
+              {item.date && (
+                <ThemedText style={[
+                  styles.timeText,
+                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+                ]}>
+                  {new Date(item.date).toLocaleDateString()}
+                </ThemedText>
+              )}
+              {item.time && (
+                <ThemedText style={[
+                  styles.timeText,
+                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+                ]}>
+                  {item.time}
+                </ThemedText>
+              )}
+            </View>
           )}
         </Card.Content>
       </Card>
@@ -247,5 +253,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     backgroundColor: Colors.dark.primary,
+  },
+  timeInfo: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 8,
+  },
+  timeText: {
+    fontSize: 14,
+    opacity: 0.7,
   },
 });

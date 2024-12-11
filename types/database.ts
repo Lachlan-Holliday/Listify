@@ -4,7 +4,8 @@ export interface Task {
   category: string;
   recurring: 'none' | 'daily' | 'weekly' | 'monthly';
   completed: boolean;
-  deadline?: string;
+  date?: string;
+  time?: string;
   created_at: string;
 }
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Animated, Pressable } from 'react-native';
-import { TextInput, Button, SegmentedButtons } from 'react-native-paper';
+import { StyleSheet, View, ScrollView, Animated, Pressable, Platform } from 'react-native';
+import { TextInput, Button, SegmentedButtons, Modal } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { DatabaseService } from '../services/database';
@@ -9,6 +9,7 @@ import { ThemedText } from '../components/ThemedText';
 import { BouncingArrow } from '../components/BouncingArrow';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type RecurringOption = 'none' | 'daily' | 'weekly' | 'monthly';
 
@@ -18,9 +19,15 @@ export default function CreateTaskScreen() {
   const buttonScale = new Animated.Value(1);
 
   const [taskName, setTaskName] = useState('');
-  const [deadline, setDeadline] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [recurring, setRecurring] = useState<RecurringOption>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [mode, setMode] = useState<'date' | 'time'>('date');
+  const [show, setShow] = useState(false);
+  const [timeDisplay, setTimeDisplay] = useState('');
 
   const params = useLocalSearchParams<{ category: string }>();
   const category = params.category;
@@ -48,7 +55,13 @@ export default function CreateTaskScreen() {
     setIsSubmitting(true);
     
     try {
-      const success = await DatabaseService.addTask(taskName, category, recurring, deadline);
+      const success = await DatabaseService.addTask(
+        taskName, 
+        category, 
+        recurring, 
+        date, 
+        time
+      );
       if (success) {
         router.back();
         router.replace('/(tabs)');
@@ -64,11 +77,50 @@ export default function CreateTaskScreen() {
     router.back();
   };
 
+  const onChange = (event: any, selectedDate?: Date) => {
+    setShow(false);
+    if (event.type === 'dismissed') return;
+
+    const currentDate = selectedDate || (mode === 'date' ? selectedDate : selectedTime);
+    if (currentDate) {
+      if (mode === 'date') {
+        setSelectedDate(currentDate);
+        setDate(currentDate.toISOString().split('T')[0]);
+      } else {
+        setSelectedTime(currentDate);
+        const hours24 = currentDate.getHours().toString().padStart(2, '0');
+        const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+        setTime(`${hours24}:${minutes}`);
+
+        const hours12 = currentDate.getHours() % 12 || 12;
+        const ampm = currentDate.getHours() >= 12 ? 'PM' : 'AM';
+        const timeDisplay = `${hours12}:${minutes} ${ampm}`;
+        setTimeDisplay(timeDisplay);
+      }
+    }
+  };
+
+  const showMode = (currentMode: 'date' | 'time') => {
+    if (Platform.OS === 'android') {
+      setShow(false);
+      setTimeout(() => {
+        setShow(true);
+        setMode(currentMode);
+      }, 100);
+    } else {
+      setShow(true);
+      setMode(currentMode);
+    }
+  };
+
+  const handleShowDatePicker = () => showMode('date');
+  const handleShowTimePicker = () => showMode('time');
+
   return (
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
     }]}>
-      <View style={styles.content}>
+      <ScrollView style={styles.content}>
         <TextInput
           label="Task Name"
           value={taskName}
@@ -82,21 +134,6 @@ export default function CreateTaskScreen() {
           outlineColor={isDark ? Colors.dark.border : Colors.light.border}
           activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
           autoFocus
-        />
-
-        <TextInput
-          label="Deadline (optional)"
-          value={deadline}
-          onChangeText={setDeadline}
-          style={[styles.input, { 
-            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-          }]}
-          textColor={isDark ? Colors.dark.text : Colors.light.text}
-          placeholderTextColor={isDark ? Colors.dark.secondaryText : Colors.light.secondaryText}
-          mode="outlined"
-          outlineColor={isDark ? Colors.dark.border : Colors.light.border}
-          activeOutlineColor={isDark ? Colors.dark.primary : Colors.light.primary}
-          placeholder="YYYY-MM-DD"
         />
 
         <View style={styles.recurringSection}>
@@ -130,6 +167,37 @@ export default function CreateTaskScreen() {
           />
         </View>
 
+        {(recurring === 'weekly' || recurring === 'monthly') && (
+          <Button
+            mode="outlined"
+            onPress={() => showMode('date')}
+            style={styles.pickerButton}
+            icon="calendar"
+          >
+            {date || 'Select Date'}
+          </Button>
+        )}
+
+        <Button
+          mode="outlined"
+          onPress={() => showMode('time')}
+          style={styles.pickerButton}
+          icon="clock"
+        >
+          {timeDisplay || 'Select Time'}
+        </Button>
+
+        {show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={mode === 'date' ? selectedDate : selectedTime}
+            mode={mode}
+            is24Hour={false}
+            onChange={onChange}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          />
+        )}
+
         <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
           <Button 
             mode="contained" 
@@ -147,7 +215,7 @@ export default function CreateTaskScreen() {
             Create Task
           </Button>
         </Animated.View>
-      </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <BouncingArrow onPress={handleDismiss} />
@@ -205,5 +273,27 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     paddingBottom: 24,
+  },
+  modalContent: {
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    maxHeight: '80%',
+  },
+  timeList: {
+    maxHeight: 300,
+  },
+  timeItem: {
+    height: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  timeText: {
+    fontSize: 16,
+  },
+  pickerButton: {
+    marginBottom: 24,
+    borderRadius: 12,
   },
 }); 

@@ -24,6 +24,8 @@ export const initDatabase = async () => {
   try {
     const database = await db;
     await database.execAsync(`
+      DROP TABLE IF EXISTS tasks;
+      
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -37,7 +39,8 @@ export const initDatabase = async () => {
         category TEXT NOT NULL,
         recurring TEXT CHECK(recurring IN ('none', 'daily', 'weekly', 'monthly')) DEFAULT 'none',
         completed BOOLEAN DEFAULT FALSE,
-        deadline TEXT,
+        date TEXT,
+        time TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
       PRAGMA journal_mode = WAL;
@@ -56,7 +59,7 @@ export const initDatabase = async () => {
       }
     }
 
-    console.log('Database initialized');
+    console.log('Database initialized with new schema');
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -83,28 +86,35 @@ export const DatabaseService = {
     }
   },
 
-  async addTask(name: string, category: string, recurring: string = 'none', deadline?: string): Promise<boolean> {
+  async addTask(
+    name: string, 
+    category: string, 
+    recurring: string = 'none', 
+    date?: string,
+    time?: string
+  ): Promise<boolean> {
     try {
       const database = await db;
       const statement = await database.prepareAsync(
-        'INSERT INTO tasks (name, category, recurring, deadline) VALUES (?, ?, ?, ?)'
+        'INSERT INTO tasks (name, category, recurring, date, time) VALUES (?, ?, ?, ?, ?)'
       );
       try {
-        // Ensure recurring is one of the allowed values
         const validRecurring = ['none', 'daily', 'weekly', 'monthly'].includes(recurring) ? recurring : 'none';
         
         console.log('Adding task:', {
           name,
           category,
           recurring: validRecurring,
-          deadline: deadline || 'none'
+          date: date || 'none',
+          time: time || 'none'
         });
 
         await statement.executeAsync([
           name.trim(),
           category.trim(),
           validRecurring,
-          deadline?.trim() || null
+          date?.trim() || null,
+          time?.trim() || null
         ]);
         
         console.log('Task added successfully');
