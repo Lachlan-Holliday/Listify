@@ -103,8 +103,12 @@ export default function AddTaskScreen() {
               <Card
                 style={[
                   styles.categoryCard,
-                  { backgroundColor: category.color }
+                  { 
+                    backgroundColor: category.color,
+                    elevation: 0,
+                  }
                 ]}
+                mode="contained"
               >
                 <Card.Content style={styles.cardContent}>
                   <ThemedText style={styles.emoji}>{category.icon}</ThemedText>
@@ -183,11 +187,13 @@ const styles = StyleSheet.create({
   categoryCard: {
     marginBottom: 16,
     borderRadius: 16,
-    elevation: 4,
+    // iOS shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    // Android shadow
+    elevation: 1,
   },
   cardContent: {
     flexDirection: 'row',

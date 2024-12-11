@@ -16,7 +16,10 @@ export default function SettingsScreen() {
     ]}>
       <ThemedView style={[
         styles.section,
-        { borderRadius: 12 }
+        { 
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+          borderRadius: 12 
+        }
       ]}>
         <ThemedText style={[
           styles.sectionTitle,
@@ -32,7 +35,7 @@ export default function SettingsScreen() {
         <ThemedView style={[
           styles.settingItem,
           {
-            backgroundColor: isDark ? Colors.dark.card : Colors.light.settingsItem,
+            backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
             borderColor: isDark ? Colors.dark.border : Colors.light.border,
             borderWidth: 1,
           }
@@ -44,8 +47,9 @@ export default function SettingsScreen() {
             Dark Mode
           </ThemedText>
           <Switch
-            value={theme === 'dark'}
+            value={isDark}
             onValueChange={toggleTheme}
+            color={isDark ? Colors.dark.primary : Colors.light.primary}
           />
         </ThemedView>
       </ThemedView>

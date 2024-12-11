@@ -91,11 +91,11 @@ export default function TasksScreen() {
           styles.taskCard,
           {
             backgroundColor: isDark ? Colors.dark.card : Colors.light.card,
-            borderColor: isDark ? Colors.dark.border : Colors.light.border,
-            borderWidth: 1,
+            elevation: 0,
           },
           item.completed && styles.completedTask
         ]}
+        mode="contained"
         onPress={() => handleCompleteTask(item.id)}>
         <Card.Content style={styles.cardContent}>
           <View style={styles.taskHeader}>
@@ -167,11 +167,13 @@ const styles = StyleSheet.create({
   taskCard: {
     marginBottom: 12,
     borderRadius: 12,
-    elevation: 2,
+    // iOS shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
+    // Android shadow
+    elevation: 1,
   },
   completedTask: {
     opacity: 0.7,
