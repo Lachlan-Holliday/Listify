@@ -12,6 +12,9 @@ import { Colors } from '../../constants/Colors';
 import * as Haptics from 'expo-haptics';
 import { Animated as RNAnimated } from 'react-native';
 import { TaskCountdown } from '../../components/TaskCountdown';
+import { FilterBottomSheet, FilterOption } from '../../components/FilterBottomSheet';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFilter } from '../../contexts/FilterContext';
 
 const DAYS_OF_WEEK = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
@@ -122,6 +125,8 @@ export default function TasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { isFilterVisible, hideFilter } = useFilter();
+  const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
 
   const calculateCountdown = (date?: string, time?: string): number => {
     if (!date && !time) return Number.MAX_VALUE;
@@ -264,13 +269,18 @@ export default function TasksScreen() {
     </Swipeable>
   );
 
+  const getFilteredTasks = (tasks: Task[]) => {
+    if (activeFilter === 'all') return tasks;
+    return tasks.filter(task => task.recurring === activeFilter);
+  };
+
   return (
     <ThemedView style={[
       styles.container,
       { backgroundColor: isDark ? Colors.dark.background : Colors.light.background }
     ]}>
       <FlatList
-        data={tasks}
+        data={getFilteredTasks(tasks)}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderTaskItem}
         style={styles.list}
@@ -284,6 +294,12 @@ export default function TasksScreen() {
           />
         </Link>
       </View>
+      <FilterBottomSheet
+        visible={isFilterVisible}
+        onDismiss={hideFilter}
+        selectedFilter={activeFilter}
+        onFilterSelect={setActiveFilter}
+      />
     </ThemedView>
   );
 }

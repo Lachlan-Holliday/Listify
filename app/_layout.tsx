@@ -7,6 +7,7 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
 import { PaperProvider } from 'react-native-paper';
+import { FilterProvider } from '../contexts/FilterContext';
 
 function RootLayoutNav() {
   const { theme } = useTheme();
@@ -57,9 +58,11 @@ export default function RootLayout() {
   return (
     <PaperProvider>
       <ThemeProvider>
-        <GestureHandlerRootView style={styles.container}>
-          <RootLayoutNav />
-        </GestureHandlerRootView>
+        <FilterProvider>
+          <GestureHandlerRootView style={styles.container}>
+            <RootLayoutNav />
+          </GestureHandlerRootView>
+        </FilterProvider>
       </ThemeProvider>
     </PaperProvider>
   );

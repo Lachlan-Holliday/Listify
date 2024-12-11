@@ -1,12 +1,14 @@
 import { Tabs } from 'expo-router';
-import { Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, Pressable } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/Colors';
+import { useFilter } from '../../contexts/FilterContext';
 
 export default function TabLayout() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { showFilter } = useFilter();
 
   return (
     <Tabs
@@ -37,6 +39,21 @@ export default function TabLayout() {
           title: 'Tasks',
           tabBarIcon: ({ color }) => (
             <Ionicons name="list" size={24} color={color} />
+          ),
+          headerRight: () => (
+            <Pressable
+              onPress={showFilter}
+              style={({ pressed }) => ({
+                marginRight: 16,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialCommunityIcons
+                name="filter-variant"
+                size={24}
+                color={isDark ? Colors.dark.text : Colors.light.text}
+              />
+            </Pressable>
           ),
         }}
       />
