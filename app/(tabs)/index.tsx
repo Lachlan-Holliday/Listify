@@ -175,6 +175,8 @@ export default function TasksScreen() {
       renderRightActions={(_, dragX) => renderRightActions(item.id, dragX)}
       overshootRight={false}
       rightThreshold={40}
+      friction={2}
+      hitSlop={{ left: 2 }}
       onSwipeableWillOpen={() => {
         if (item.completed) {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -220,7 +222,8 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   taskCard: {
     marginBottom: 12,
@@ -274,15 +277,17 @@ const styles = StyleSheet.create({
   },
   deleteActionContainer: {
     justifyContent: 'center',
-    marginLeft: 8,
+    paddingLeft: 8,
     height: 'auto',
+    alignSelf: 'stretch',
   },
   deleteAction: {
     backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingVertical: 26,
+    height: '90%',
     borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
