@@ -6,9 +6,11 @@ import { useTheme } from '../contexts/ThemeContext';
 interface Props {
   date?: string;
   time?: string;
+  isCompleted?: boolean;
+  onCountdownChange?: (status: string) => void;
 }
 
-export function TaskCountdown({ date, time }: Props) {
+export function TaskCountdown({ date, time, isCompleted, onCountdownChange }: Props) {
   const [countdown, setCountdown] = useState('');
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -109,11 +111,14 @@ export function TaskCountdown({ date, time }: Props) {
 
   return (
     <ThemedText style={{
-      fontSize: 14,
-      fontWeight: '600',
-      color: countdown === 'Overdue' 
-        ? '#FF3B30' 
-        : isDark ? Colors.dark.secondaryText : Colors.light.secondaryText
+      fontSize: 20,
+      fontWeight: '700',
+      color: isCompleted ? '#4CAF50' : 
+        countdown === 'Overdue' ? '#FF3B30' : 
+        isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
+      minWidth: 50,
+      textAlign: 'right',
+      alignSelf: 'center',
     }}>
       {countdown}
     </ThemedText>

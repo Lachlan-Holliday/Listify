@@ -26,6 +26,7 @@ const TaskCard = ({ item, onComplete, onDelete }: {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [categoryColor, setCategoryColor] = useState<string>('');
+  const [countdownStatus, setCountdownStatus] = useState('');
 
   useEffect(() => {
     const fetchCategoryColor = async () => {
@@ -54,41 +55,51 @@ const TaskCard = ({ item, onComplete, onDelete }: {
       onPress={() => onComplete(item.id)}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.taskHeader}>
-          <ThemedText 
-            style={[
-              styles.taskName,
-              { color: isDark ? Colors.dark.text : Colors.light.text },
-              item.completed && {
-                color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText,
-                textDecorationLine: 'line-through'
-              }
-            ]}
-          >
-            {item.name}
-          </ThemedText>
-          <TaskCountdown date={item.date} time={item.time} />
-          <View style={styles.statusIndicator} />
-        </View>
-        {(item.date || item.time) && (
-          <View style={styles.timeInfo}>
-            {item.date && (
-              <ThemedText style={[
-                styles.timeText,
-                { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
-              ]}>
-                {formatDisplayDate(item.date, item.recurring)}
-              </ThemedText>
-            )}
-            {item.time && (
-              <ThemedText style={[
-                styles.timeText,
-                { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
-              ]}>
-                {item.time}
-              </ThemedText>
-            )}
+          <View style={styles.leftContainer}>
+            <ThemedText 
+              style={[
+                styles.taskName,
+                { color: isDark ? Colors.dark.text : Colors.light.text },
+                item.completed && {
+                  color: '#4CAF50',
+                  textDecorationLine: 'line-through',
+                  textDecorationColor: '#4CAF50',
+                },
+                !item.completed && countdownStatus === 'Overdue' && {
+                  color: '#FF3B30',
+                }
+              ]}
+            >
+              {item.name}
+            </ThemedText>
+            <View style={styles.timeInfo}>
+              {item.date && (
+                <ThemedText style={[
+                  styles.timeText,
+                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+                ]}>
+                  {formatDisplayDate(item.date, item.recurring)}
+                </ThemedText>
+              )}
+              {item.time && (
+                <ThemedText style={[
+                  styles.timeText,
+                  { color: isDark ? Colors.dark.secondaryText : Colors.light.secondaryText }
+                ]}>
+                  {formatTime(item.time)}
+                </ThemedText>
+              )}
+            </View>
           </View>
-        )}
+          <View style={styles.countdownContainer}>
+            <TaskCountdown 
+              date={item.date} 
+              time={item.time} 
+              isCompleted={item.completed}
+              onCountdownChange={setCountdownStatus}
+            />
+          </View>
+        </View>
       </Card.Content>
     </Card>
   );
@@ -228,12 +239,11 @@ const styles = StyleSheet.create({
   taskCard: {
     marginBottom: 12,
     borderRadius: 12,
-    // iOS shadow
+    height: 85,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    // Android shadow
     elevation: 1,
   },
   completedTask: {
@@ -244,28 +254,30 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   cardContent: {
-    padding: 16,
+    padding: 12,
+    height: '100%',
   },
   taskHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
+    height: '100%',
+    gap: 12,
+  },
+  leftContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   taskName: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: '600',
-    flex: 1,
+    marginBottom: 4,
   },
-  statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 8,
+  timeInfo: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  deadline: {
-    fontSize: 14,
+  timeText: {
+    fontSize: 13,
     opacity: 0.7,
   },
   fabContainer: {
@@ -287,7 +299,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 26,
-    height: '90%',
+    height: '85%',
     borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
@@ -312,14 +324,11 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     backgroundColor: Colors.dark.primary,
   },
-  timeInfo: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
-  },
-  timeText: {
-    fontSize: 14,
-    opacity: 0.7,
+  countdownContainer: {
+    height: '100%',
+    justifyContent: 'center',
+    minWidth: 60,
+    alignItems: 'flex-end',
   },
 });
 
@@ -342,4 +351,15 @@ const formatDisplayDate = (date: string | undefined, recurring: string): string 
       const [month, day, year] = date.split('-');
       return new Date(`${year}-${month}-${day}`).toLocaleDateString();
   }
+};
+
+const formatTime = (time: string | undefined): string => {
+  if (!time) return '';
+  
+  const [hours24, minutes] = time.split(':');
+  const hours = parseInt(hours24);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  
+  return `${hours12}:${minutes} ${ampm}`;
 };

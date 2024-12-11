@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Animated, Pressable, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Animated, Pressable, Platform, Keyboard } from 'react-native';
 import { TextInput, Button, SegmentedButtons, Modal } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -133,6 +133,13 @@ export default function CreateTaskScreen() {
   const handleShowDatePicker = () => showMode('date');
   const handleShowTimePicker = () => showMode('time');
 
+  const handleRecurringChange = (value: string) => {
+    Keyboard.dismiss();
+    Haptics.selectionAsync();
+    setRecurring(value as RecurringOption);
+    setShow(false);
+  };
+
   return (
     <ThemedView style={[styles.container, { 
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background 
@@ -164,11 +171,7 @@ export default function CreateTaskScreen() {
           </ThemedText>
           <SegmentedButtons
             value={recurring}
-            onValueChange={value => {
-              Haptics.selectionAsync();
-              setRecurring(value as RecurringOption);
-              setShow(false);
-            }}
+            onValueChange={handleRecurringChange}
             buttons={[
               { value: 'none', label: 'Once' },
               { value: 'daily', label: 'Daily' },

@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/Colors';
@@ -10,16 +11,25 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isDark ? Colors.dark.primary : Colors.light.primary,
-        tabBarStyle: {
-          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-          borderTopColor: isDark ? Colors.dark.border : Colors.light.border,
-        },
-        tabBarInactiveTintColor: isDark ? '#8E8E93' : '#999999',
         headerStyle: {
           backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
         },
         headerTintColor: isDark ? Colors.dark.text : Colors.light.text,
+        tabBarStyle: {
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+        },
+        tabBarActiveTintColor: isDark ? Colors.dark.primary : Colors.light.primary,
+        headerLeft: () => (
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={{
+              width: 24,
+              height: 24,
+              marginLeft: 16,
+            }}
+          />
+        ),
+        headerTitleAlign: 'center',
       }}>
       <Tabs.Screen
         name="index"
